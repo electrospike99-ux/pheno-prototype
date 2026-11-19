@@ -8,24 +8,22 @@
   const standalone = () => navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
   /* iOS home-screen apps report innerHeight without the status bar at first (852 -> 793 on an iPhone 15),
      which left a strip at the bottom; opened from the icon, the real display size is the truth */
+  /* The app no longer draws under the status bar (status-bar-style "default" in index.html). Drawing under it made iOS
+     report the window as 793 on some launches and 852 on others (iPhone 15), so the bottom was sometimes cut off and taps
+     landed up to 59pt away. Now the window is the area below the status bar on every launch, and what iOS reports is true. */
   const size = () => {
-    let W = innerWidth, H = innerHeight;
-    // opened from the icon, or no browser bars showing (the gap to the real display is only the status bar's height or less)
-    if (isPhone() && (standalone() || Math.max(S.width, S.height) - Math.max(innerWidth, innerHeight) <= 64)) {
-      const portrait = innerHeight >= innerWidth;
-      const sw = portrait ? Math.min(S.width, S.height) : Math.max(S.width, S.height);
-      const sh = portrait ? Math.max(S.width, S.height) : Math.min(S.width, S.height);
-      W = sw; H = Math.max(H, sh, document.documentElement.clientHeight);
-    }
-    return [W, H];
+    const vv = window.visualViewport;
+    return [innerWidth, Math.round(vv ? Math.max(vv.height, innerHeight) : innerHeight)];
   };
   let lastSize = [0, 0];
   fit = function () {
     const [W, H] = size(), root = document.documentElement.style;
     let f, h, ox = 0, oy = 0; lastSize = [W, H];
     if (isPhone()) {
-      f = W / 390; h = H / f;                                               // fill the width; the design grows to the screen's height
-      if (h < 760) { f = H / 760; h = 760; ox = (W - 390 * f) / 2; }        // very short screens: scale down whole instead
+      // fill the width; the design's own status-bar strip (its top 54px) sits above the window, under the phone's real one
+      const TOP = 54;
+      f = W / 390; h = H / f + TOP; oy = -TOP * f;
+      if (H / f < 760 - TOP) { f = H / (760 - TOP); h = 760; ox = (W - 390 * f) / 2; oy = -TOP * f; }   // very short screens: scale down whole instead
     } else {
       f = Math.min(1, (H - 40) / 844); h = 844; ox = (W - 390 * f) / 2; oy = (H - 844 * f) / 2;
     }
@@ -34,6 +32,11 @@
     root.setProperty('--ox', ox.toFixed(1) + 'px'); root.setProperty('--oy', oy.toFixed(1) + 'px');
     document.body.classList.toggle('app-desk', !isPhone());
   };
+  /* the phone's status bar strip takes the app's background: white, or near-black in dark mode */
+  const tc = document.querySelector('meta[name="theme-color"]');
+  const paintBar = () => { if (tc) tc.setAttribute('content', document.getElementById('screen').classList.contains('dark') ? '#0B0C0F' : '#ffffff'); };
+  new MutationObserver(paintBar).observe(document.getElementById('screen'), { attributes: true, attributeFilter: ['class'] }); paintBar();
+
   const refit = () => { fit(); requestAnimationFrame(() => { if (typeof fitZone === 'function') fitZone(); }); };
   refit();
   ['orientationchange', 'pageshow'].forEach(e => addEventListener(e, () => setTimeout(refit, 60)));
@@ -70,7 +73,7 @@
 
   /* size check: shown by itself for ten seconds when this build first opens (and on three quick taps near the top),
      so the phone's own numbers can be screenshotted. Tap the box to hide it. */
-  const BUILD = '19.11 22:40';
+  const BUILD = '19.11 22:50';
   const measure = u => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;height:' + u;
     document.body.appendChild(d); const h = Math.round(d.getBoundingClientRect().height); d.remove(); return h; };
   const envPx = side => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;visibility:hidden;padding-' + side + ':env(safe-area-inset-' + side + ')';
@@ -92,7 +95,7 @@
   let shownFor = null; try { shownFor = localStorage.getItem('pheno-readout'); } catch (e) {}
   if (isPhone() && shownFor !== BUILD) { setTimeout(showReadout, 1400); try { localStorage.setItem('pheno-readout', BUILD); } catch (e) {} }
   /* tap check, for the first minute after this build opens: a dot appears exactly where the phone says you touched */
-  if (isPhone() && shownFor !== BUILD) {
+  if (false) {                                                        // tap check: confirmed fine on 19.11, kept off
     const until = Date.now() + 60000;
     document.addEventListener('touchstart', e => { if (Date.now() > until) return; const t = e.touches[0]; if (!t) return;
       const d = document.createElement('i'); d.style.cssText = 'position:fixed;z-index:99998;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:rgba(255,40,90,.75);box-shadow:0 0 0 3px #fff;pointer-events:none;transition:opacity .8s ease .4s;left:' + t.clientX + 'px;top:' + t.clientY + 'px';
