@@ -45,18 +45,33 @@
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(e => document.addEventListener(e, stop, { passive: false }));
   document.addEventListener('touchmove', e => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, { passive: false });
 
-  /* hidden check for sizing problems: three quick taps on the status bar area show what the phone reports */
-  let taps = [];
-  document.addEventListener('touchstart', e => {
-    if (e.touches[0].clientY > 44) return; const t = Date.now(); taps = taps.filter(x => t - x < 700).concat(t); if (taps.length < 3) return; taps = [];
+  /* size check: shown by itself for ten seconds when this build first opens (and on three quick taps near the top),
+     so the phone's own numbers can be screenshotted. Tap the box to hide it. */
+  const BUILD = '19.11 22:30';
+  const measure = u => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;height:' + u;
+    document.body.appendChild(d); const h = Math.round(d.getBoundingClientRect().height); d.remove(); return h; };
+  const envPx = side => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;visibility:hidden;padding-' + side + ':env(safe-area-inset-' + side + ')';
+    document.body.appendChild(d); const v = parseFloat(getComputedStyle(d)['padding' + side[0].toUpperCase() + side.slice(1)]) || 0; d.remove(); return Math.round(v); };
+  function showReadout() {
     let box = document.getElementById('sizeReadout'); if (box) { box.remove(); return; }
     box = document.createElement('pre'); box.id = 'sizeReadout';
-    box.style.cssText = 'position:fixed;left:8px;top:60px;z-index:99999;margin:0;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.82);color:#fff;font:12px/1.5 ui-monospace,monospace;pointer-events:none';
-    const sc = document.getElementById('screen').getBoundingClientRect(), vv = window.visualViewport;
-    box.textContent = ['window ' + innerWidth + ' x ' + innerHeight, 'display ' + S.width + ' x ' + S.height, 'page ' + document.documentElement.clientHeight,
-      'visual ' + (vv ? Math.round(vv.width) + ' x ' + Math.round(vv.height) : '-'), 'app mode ' + standalone(), 'used ' + lastSize.map(Math.round).join(' x '),
-      'drawn ' + Math.round(sc.width) + ' x ' + Math.round(sc.height) + ' at ' + Math.round(sc.top)].join('\n');
+    box.style.cssText = 'position:fixed;left:12px;top:140px;z-index:99999;margin:0;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.85);color:#fff;font:13px/1.55 ui-monospace,monospace';
+    const sc = document.getElementById('screen').getBoundingClientRect(), vv = window.visualViewport, bd = document.body.getBoundingClientRect();
+    box.textContent = ['build ' + BUILD, 'app mode ' + standalone(), 'window ' + innerWidth + ' x ' + innerHeight, 'display ' + S.width + ' x ' + S.height,
+      'page ' + document.documentElement.clientHeight + '   body ' + Math.round(bd.height), 'visual ' + (vv ? Math.round(vv.width) + ' x ' + Math.round(vv.height) : '-'),
+      '100vh ' + measure('100vh') + '  lvh ' + measure('100lvh') + '  svh ' + measure('100svh') + '  dvh ' + measure('100dvh'),
+      'safe top ' + envPx('top') + '  bottom ' + envPx('bottom'), 'used ' + lastSize.map(Math.round).join(' x '),
+      'drawn ' + Math.round(sc.width) + ' x ' + Math.round(sc.height) + ' at ' + Math.round(sc.top), '(tap to hide)'].join('\n');
+    box.addEventListener('click', () => box.remove());
     document.body.appendChild(box);
+    setTimeout(() => box.isConnected && box.remove(), 10000);
+  }
+  let shownFor = null; try { shownFor = localStorage.getItem('pheno-readout'); } catch (e) {}
+  if (isPhone() && shownFor !== BUILD) { setTimeout(showReadout, 1400); try { localStorage.setItem('pheno-readout', BUILD); } catch (e) {} }
+  let taps = [];
+  document.addEventListener('touchstart', e => {
+    if (e.touches[0].clientY > 140) return; const t = Date.now(); taps = taps.filter(x => t - x < 700).concat(t); if (taps.length < 3) return; taps = [];
+    showReadout();
   }, { passive: true });
 
   if (matchMedia('(hover: none)').matches || 'ontouchstart' in window) {
