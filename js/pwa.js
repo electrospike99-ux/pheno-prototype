@@ -15,13 +15,19 @@
     const vv = window.visualViewport;
     return [innerWidth, Math.round(vv ? Math.max(vv.height, innerHeight) : innerHeight)];
   };
+  // does the page start under the status bar? iOS then reports a top safe area (about 59pt on an iPhone 15)
+  const probe = document.createElement('div'); probe.style.cssText = 'position:fixed;top:0;left:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)';
+  document.body.appendChild(probe);
+  const underBar = () => (parseFloat(getComputedStyle(probe).paddingTop) || 0) > 10;
   let lastSize = [0, 0];
   fit = function () {
     const [W, H] = size(), root = document.documentElement.style;
     let f, h, ox = 0, oy = 0; lastSize = [W, H];
     if (isPhone()) {
-      // fill the width; the design's own status-bar strip (its top 54px) sits above the window, under the phone's real one
-      const TOP = 54;
+      // fill the width. Only when the window starts below the phone's status bar does the design's own status-bar strip
+      // (its top 54px) go above the window. If the app still draws under the status bar (a Home Screen icon added before
+      // 19.11 22:50 keeps that old setting until it is added again), nothing is shifted.
+      const TOP = underBar() ? 0 : 54;
       f = W / 390; h = H / f + TOP; oy = -TOP * f;
       if (H / f < 760 - TOP) { f = H / (760 - TOP); h = 760; ox = (W - 390 * f) / 2; oy = -TOP * f; }   // very short screens: scale down whole instead
     } else {
@@ -73,7 +79,7 @@
 
   /* size check: shown by itself for ten seconds when this build first opens (and on three quick taps near the top),
      so the phone's own numbers can be screenshotted. Tap the box to hide it. */
-  const BUILD = '19.11 22:50';
+  const BUILD = '19.11 23:00';
   const measure = u => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;height:' + u;
     document.body.appendChild(d); const h = Math.round(d.getBoundingClientRect().height); d.remove(); return h; };
   const envPx = side => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;visibility:hidden;padding-' + side + ':env(safe-area-inset-' + side + ')';
@@ -86,7 +92,7 @@
     box.textContent = ['build ' + BUILD, 'app mode ' + standalone(), 'window ' + innerWidth + ' x ' + innerHeight, 'display ' + S.width + ' x ' + S.height,
       'page ' + document.documentElement.clientHeight + '   body ' + Math.round(bd.height), 'visual ' + (vv ? Math.round(vv.width) + ' x ' + Math.round(vv.height) : '-'),
       '100vh ' + measure('100vh') + '  lvh ' + measure('100lvh') + '  svh ' + measure('100svh') + '  dvh ' + measure('100dvh'),
-      'safe top ' + envPx('top') + '  bottom ' + envPx('bottom'), 'page scroll ' + Math.round(scrollY) + '  view offset ' + (vv ? Math.round(vv.offsetTop) : '-'), 'used ' + lastSize.map(Math.round).join(' x '),
+      'safe top ' + envPx('top') + '  bottom ' + envPx('bottom') + '  under bar ' + underBar(), 'page scroll ' + Math.round(scrollY) + '  view offset ' + (vv ? Math.round(vv.offsetTop) : '-'), 'used ' + lastSize.map(Math.round).join(' x '),
       'drawn ' + Math.round(sc.width) + ' x ' + Math.round(sc.height) + ' at ' + Math.round(sc.top), '(tap to hide)'].join('\n');
     box.addEventListener('click', () => box.remove());
     document.body.appendChild(box);
