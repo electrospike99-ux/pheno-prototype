@@ -1,0 +1,199 @@
+/* ==============================================================================================
+   Review fixes (19.11.26): the cards changed in reply to review comments, the before/after switch,
+   and the "Cards without a question" design alternative.
+   ============================================================================================== */
+
+/* ---------- jet lag fact: two windows on one half clock ---------- */
+.beatwrap.jetlag{ gap:12px; }
+.jlclock{ width:100%; max-width:270px; height:auto; display:block; overflow:visible; }
+.jl-track{ fill:none; stroke:rgba(16,17,20,.07); stroke-width:18; stroke-linecap:round; }
+.jl-a{ fill:none; stroke:var(--c); stroke-width:18; stroke-linecap:round; }
+.jl-b{ fill:none; stroke:color-mix(in srgb, var(--c) 42%, #fff); stroke-width:18; stroke-linecap:round; }
+.jl-h{ font-size:10px; font-weight:600; fill:#9A9DA8; font-family:var(--sans); }
+.jl-h.major{ fill:#2A2C33; font-weight:700; }
+.jl-key{ display:flex; align-items:center; gap:6px; margin-top:-4px; font-size:12.5px; color:#5C6070; }
+.jl-key i{ width:10px; height:10px; border-radius:50%; background:var(--c); }
+.jl-key i.k2{ margin-left:12px; background:color-mix(in srgb, var(--c) 42%, #fff); }
+.jl-n{ margin:6px 0 0; font-family:var(--serif); font-size:36px; line-height:1; color:color-mix(in srgb, var(--c) 72%, #000); font-variant-numeric:lining-nums; }
+.jl-n span{ font-size:20px; color:#5C6070; }
+.jl-ex{ font-size:11.5px; font-style:normal; color:#8A8D98; }
+.screen.dark .jl-track{ stroke:rgba(255,255,255,.08); }
+.screen.dark .jl-b, .screen.dark .jl-key i.k2{ stroke:color-mix(in srgb, var(--c) 45%, #15161B); }
+.screen.dark .jl-key i.k2{ background:color-mix(in srgb, var(--c) 45%, #15161B); }
+.screen.dark .jl-h.major{ fill:#ECEDF1; }
+.screen.dark .jl-key, .screen.dark .jl-n span{ color:#A7A9B4; }
+.screen.dark .jl-n{ color:color-mix(in srgb, var(--c) 65%, #fff); }
+
+/* ---------- found card: one clean chart, less text ---------- */
+.beatwrap.found2{ gap:16px; }
+.found2 .fbox{ width:100%; border-radius:18px; background:#F4F5F7; padding:12px 12px 6px; text-align:left; }
+.fhead{ display:grid; grid-template-columns:1fr auto; align-items:baseline; row-gap:2px; }
+.fhead b{ grid-column:1 / -1; }
+.fhead span{ font-size:11px; font-weight:700; letter-spacing:.06em; color:#8A8D98; }
+.fhead b{ font-size:18px; color:#111216; font-variant-numeric:tabular-nums; }
+.fhead em{ margin-left:auto; font-style:normal; font-size:10.5px; color:#8A8D98; }
+.bchart{ width:100%; height:auto; display:block; margin-top:4px; }
+.bc-we{ fill:color-mix(in srgb, #C97A06 12%, transparent); }
+.bc-wel{ font-size:10px; font-weight:700; letter-spacing:.04em; fill:#A86500; font-family:var(--sans); }
+.bc-grid{ stroke:rgba(16,17,20,.1); stroke-dasharray:2 4; }
+.bc-ax{ font-size:9px; fill:#9A9DA8; font-family:var(--sans); }
+.bc-line{ fill:none; stroke:rgba(70,80,192,.35); stroke-width:2; stroke-linejoin:round; }
+.bc-dot{ fill:#4650C0; stroke:#F4F5F7; stroke-width:2; }
+.bc-dot.we{ fill:#C97A06; }
+.bc-day{ font-size:10px; font-weight:600; fill:#8A8D98; font-family:var(--sans); }
+.bc-day.we{ fill:#A86500; }
+.beatwrap.found2 .main{ font-size:21px; }
+.beatwrap.found2 .side{ font-size:13.5px; color:#5C6070; }
+.screen.dark .found2 .fbox{ background:#1C1E24; }
+.screen.dark .fhead b{ color:#F2F2F5; }
+.screen.dark .bc-grid{ stroke:rgba(255,255,255,.12); }
+.screen.dark .bc-line{ stroke:rgba(122,132,230,.45); }
+.screen.dark .bc-dot{ fill:#7A84E6; stroke:#1C1E24; }
+.screen.dark .bc-dot.we{ fill:#C28520; }
+.screen.dark .bc-wel, .screen.dark .bc-day.we{ fill:#D9A040; }
+.screen.dark .beatwrap.found2 .side{ color:#A7A9B4; }
+
+/* ---------- mild intoxication fact: the original orb, fuzzier and grainier, swaying ---------- */
+.drunkorb{ width:240px; height:240px; margin:-10px 0 -6px; animation:sway 11s ease-in-out infinite; }
+.drunkorb canvas{ width:100%; height:100%; display:block; }
+@media (prefers-reduced-motion: reduce){ .drunkorb{ animation:none; } }
+
+/* ---------- nights slept: sleeper, you and nights in bold ---------- */
+.nightscard.v2 .ag-u{ font-weight:700; }
+.nightscard .ag-end strong{ font-weight:700; color:#0E0F12; }
+.screen.dark .nightscard .ag-end strong{ color:#fff; }
+
+/* ---------- the old timeline (for Before only) ---------- */
+.beatwrap.tlwrap{ align-items:stretch; text-align:left; }
+.tl{ list-style:none; margin:0; padding:0 4px; display:flex; flex-direction:column; gap:22px; position:relative; }
+.tl::before{ content:""; position:absolute; left:13px; top:10px; bottom:10px; width:2px; background:linear-gradient(var(--c), color-mix(in srgb, var(--c) 10%, transparent)); }
+.tl li{ position:relative; display:flex; gap:16px; align-items:flex-start; opacity:calc(1 - var(--i) * .16); }
+.tl .node{ flex:none; width:20px; height:20px; margin-top:3px; border-radius:50%; background:#fff; border:2px solid var(--c); position:relative; z-index:1; }
+.tl li.now .node{ background:var(--c); box-shadow:0 0 0 5px color-mix(in srgb, var(--c) 18%, transparent); }
+.tl span{ font-family:var(--serif); font-size:18px; line-height:1.3; color:#0E0F12; }
+.tl li.now span{ font-weight:600; }
+.screen.dark .tl .node{ background:#15161B; }
+.screen.dark .tl li.now .node{ background:var(--c); }
+.screen.dark .tl span{ color:#F2F2F5; }
+
+/* ---------- before / after ---------- */
+.ba{ display:flex; align-items:center; gap:6px; margin-top:9px; }
+.ba-l{ margin-right:2px; font-size:11.5px; color:var(--ink-2); }
+.ba-b{ appearance:none; border:1px solid var(--rule-strong); background:transparent; color:var(--ink); border-radius:999px; padding:3px 11px; font-size:12px; cursor:pointer; }
+.ba-b[aria-pressed="true"]{ background:var(--ink); color:var(--stage); border-color:var(--ink); }
+.ba-b:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.rvlast.fix{ font-style:normal; color:#1E7A4C; }
+.rvlast.was{ margin-top:4px; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .rvlast.fix{ color:#6FD3A0; } }
+.card.before-view::after{ content:"Before"; position:absolute; z-index:4; top:21px; left:58px; padding:3px 10px; border-radius:999px; background:#2A2C33; color:#fff;
+  font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; pointer-events:none; }
+body.clean .card.before-view::after{ display:none; }
+
+/* ---------- design alternative: cards without a question (facts, chapter cards, closing beats) ---------- */
+.screen.ic-big .card.beat:not(.tall), .screen.ic-big .card.chap{ left:12px; top:80px; width:366px; height:688px; }        /* the permission cards' size */
+.screen.ic-small .card.beat:not(.tall), .screen.ic-small .card.chap{ left:30px; top:132px; width:330px; height:584px; }
+.screen.ic-small .card.beat:not(.tall) .beatwrap, .screen.ic-small .card.chap .chap-mark{ padding-top:44px; }
+.screen.ic-none .card.beat, .screen.ic-none .card.chap{ padding-bottom:34px; }
+.screen.ic-none .card.beat, .screen.ic-none .card.chap{ left:0; top:0; width:390px; height:844px; border-radius:48px; padding:54px 6px 24px;
+  background:transparent !important; border-color:transparent !important; box-shadow:none !important; -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+.screen.ic-none .card.beat .corner, .screen.ic-none .card.chap .corner{ top:60px; }
+.screen.ic-none .card.beat .rvmark, .screen.ic-none .card.chap .rvmark, .screen.ic-none .card.before-view::after{ top:65px; }
+
+/* ---------- reply to "Why are you here?" (design alternative) ---------- */
+.beatwrap.ireply{ gap:18px; }
+.ir-echo{ margin:0; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.ir-echo .k{ font-size:10.5px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:color-mix(in srgb, var(--c) 78%, #000); }
+.ir-echo q{ quotes:"“" "”"; padding:8px 14px; border-radius:14px; background:color-mix(in srgb, var(--c) 12%, #fff); border:1px solid color-mix(in srgb, var(--c) 35%, transparent); font-size:14.5px; color:#2A2C33; }
+.ir-head{ margin:4px 0 0; font-family:var(--serif); font-weight:400; font-size:30px; line-height:1.15; letter-spacing:-.015em; color:#0E0F12; text-wrap:balance; }
+.ir-head strong, .ir-body strong{ font-weight:700; }
+.ir-body{ margin:0; font-size:16px; line-height:1.5; color:#3A3D46; text-wrap:pretty; }
+.ir-next{ margin:6px 0 0; padding-top:14px; border-top:1px solid rgba(16,17,20,.1); font-size:13.5px; line-height:1.45; color:#6B6F7C; }
+.screen.dark .ir-echo .k{ color:color-mix(in srgb, var(--c) 70%, #fff); }
+.screen.dark .ir-echo q{ background:color-mix(in srgb, var(--c) 18%, #15161B); color:#ECEDF1; }
+.screen.dark .ir-head{ color:#F2F2F5; }
+.screen.dark .ir-body{ color:#C5C7D0; }
+.screen.dark .ir-next{ color:#8D91A0; border-top-color:rgba(255,255,255,.1); }
+
+/* with the question track showing at the bottom (Edit answers, or "Always"): bigger cards stop where the normal cards do,
+   and full-screen cards keep their content clear of the track */
+.screen.editing.ic-big .card.beat:not(.tall), .screen.editing.ic-big .card.chap{ height:668px; }
+.screen.editing.ic-none .card.beat, .screen.editing.ic-none .card.chap{ padding-bottom:96px; }
+
+/* ---------- review queue: a card opens on click (highlighted, a little larger) to show its whole history and versions ---------- */
+.rvrow{ cursor:pointer; transition:transform .35s cubic-bezier(.3,1.3,.5,1), box-shadow .3s ease, border-color .3s ease, padding .3s ease; }
+.rvrow:hover{ border-color:var(--rule-strong); }
+.rvrow.open{ cursor:default; padding:14px 14px 12px; transform:scale(1.015); border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent), 0 14px 30px -18px rgba(10,12,30,.4); }
+.rvrow.commented.open{ border-color:#C4166F; box-shadow:0 0 0 3px color-mix(in srgb, #C4166F 16%, transparent), 0 14px 30px -18px rgba(10,12,30,.4); }
+.rvhist{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .35s cubic-bezier(.2,.8,.2,1); }
+.rvrow.open .rvhist{ grid-template-rows:1fr; }
+.rvh-in{ overflow:hidden; min-height:0; }
+.rvrow.open .rvh-in{ margin:10px 0 4px; padding-top:10px; border-top:1px solid var(--rule); }
+.rvh-vers{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.rvh-k{ margin-right:2px; font-size:11.5px; font-weight:700; color:var(--ink-2); }
+.rvh-v, .rvh-tag{ appearance:none; border:1px solid var(--rule-strong); background:transparent; color:var(--ink); border-radius:999px; padding:2px 9px; font-size:11.5px; cursor:pointer; }
+.rvh-v[aria-pressed="true"]{ background:var(--ink); color:var(--stage); border-color:var(--ink); }
+.rvh-v.gone, .rvh-tag.gone{ opacity:.45; cursor:default; }
+.rvh-v:focus-visible, .rvh-tag:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.rvh-none{ margin:8px 0 0; font-size:12.5px; color:var(--ink-2); }
+.rvh-list{ list-style:none; margin:10px 0 0; padding:0 0 0 12px; display:flex; flex-direction:column; gap:10px; border-left:2px solid var(--rule); }
+.rvh-item{ position:relative; }
+.rvh-item::before{ content:""; position:absolute; left:-18px; top:5px; width:10px; height:10px; border-radius:50%; background:var(--field); border:2px solid var(--rule-strong); }
+.rvh-item.comment::before, .rvh-item.decline::before{ border-color:#C4166F; }
+.rvh-item.fix::before{ border-color:#1E7A4C; background:#1E7A4C; }
+.rvh-top{ display:flex; align-items:center; gap:8px; font-size:12px; }
+.rvh-top b{ font-weight:700; }
+.rvh-item.comment .rvh-top b, .rvh-item.decline .rvh-top b{ color:#B0145F; }
+.rvh-item.fix .rvh-top b{ color:#1E7A4C; }
+.rvh-when{ color:var(--ink-2); }
+.rvh-top .rvh-tag{ margin-left:auto; }
+.rvh-item p{ margin:3px 0 0; font-size:12.5px; line-height:1.45; color:var(--ink); }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .rvh-item.comment .rvh-top b, :root:not([data-theme="light"]) .rvh-item.decline .rvh-top b{ color:#F07AB4; }
+  :root:not([data-theme="light"]) .rvh-item.fix .rvh-top b{ color:#6FD3A0; }
+}
+@media (prefers-reduced-motion: reduce){ .rvrow, .rvhist{ transition:none; } .rvrow.open{ transform:none; } }
+/* open: the history replaces the one-line summary and the compare switch */
+.rvrow.open .rvlast, .rvrow.open .ba{ display:none; }
+
+/* ---------- design alternative: the chronotype card in brand colours ---------- */
+.screen.chrono-brand .bg i{ filter:blur(64px); }
+.screen.chrono-brand .bg .b1{ width:380px; height:380px; left:-200px; top:-130px; background:radial-gradient(circle, #F6A623 0%, color-mix(in srgb, #F6A623 55%, transparent) 40%, transparent 72%); }
+.screen.chrono-brand .bg .b2{ width:420px; height:420px; right:-220px; bottom:-160px; background:radial-gradient(circle, #7B4FC8 0%, color-mix(in srgb, #99369C 55%, transparent) 40%, transparent 72%); }
+.screen.chrono-brand .bg .b3{ opacity:.26; background:radial-gradient(circle, #E8607A 0%, transparent 70%); }
+.screen.chrono-brand .card, .screen.polish.chrono-brand .card{
+  border-color:transparent;
+  background:linear-gradient(rgba(255,255,255,.9), rgba(255,255,255,.9)) padding-box, linear-gradient(150deg, #F6A623, #E8607A 38%, #7B4FC8 70%, #1D2B7A) border-box;
+  box-shadow:0 1px 2px rgba(16,17,20,.04), 0 24px 60px -28px rgba(123,79,200,.55);
+}
+.screen.dark.chrono-brand .card, .screen.polish.dark.chrono-brand .card{
+  background:linear-gradient(rgba(20,21,26,.9), rgba(20,21,26,.9)) padding-box, linear-gradient(150deg, #F6A623, #E8607A 38%, #7B4FC8 70%, #3A4BC4) border-box;
+}
+
+/* ---------- the admin note on the phone card: shown in full (it was clamped to two lines), with room made above it ---------- */
+.rvnote{ display:block; -webkit-line-clamp:unset; overflow:visible; bottom:9px; }
+.screen .card.has-rvnote .qfoot{ padding-bottom:calc(var(--rvnote-h, 28px) + 22px) !important; }
+
+/* ---------- approved cards: a folded list under the queue, with a way back ---------- */
+.rvapproved{ margin-top:14px; border:1px solid var(--rule); border-radius:14px; padding:4px 12px; background:var(--field); }
+.rvapproved summary{ display:flex; align-items:center; gap:8px; padding:8px 0; cursor:pointer; font-size:13.5px; list-style:none; }
+.rvapproved summary::-webkit-details-marker{ display:none; }
+.rvapproved summary::after{ content:"›"; margin-left:auto; font-size:18px; line-height:1; color:var(--ink-2); transition:transform .25s ease; }
+.rvapproved[open] summary::after{ transform:rotate(90deg); }
+.rvok{ display:inline-grid; place-items:center; width:16px; height:16px; border-radius:50%; background:#1E7A4C; color:#fff; font-size:10px; font-weight:800; }
+.rvacount{ color:var(--ink-2); font-size:12.5px; }
+.rvagroup{ margin:10px 0 4px; font-size:11.5px; font-weight:700; color:var(--ink-2); }
+.rvarow{ display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px solid var(--rule); }
+.rvaname{ appearance:none; border:0; background:none; padding:0; flex:1; min-width:0; display:flex; align-items:baseline; gap:7px; text-align:left; color:var(--ink); cursor:pointer; font-size:13px; }
+.rvaname span{ color:var(--ink-2); font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rvaname:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+.rvawhen{ flex:none; font-size:11.5px; color:var(--ink-2); }
+.pbtn.small{ padding:4px 10px; font-size:12px; border-radius:10px; flex:none; }
+.rvh-item.approve::before{ border-color:#1E7A4C; }
+.rvh-item.reopen::before{ border-color:var(--ink-2); }
+.rvh-item.approve .rvh-top b{ color:#1E7A4C; }
+
+/* ---------- design alternatives: a jump to the first place each one is used ---------- */
+.altname{ display:flex; align-items:center; gap:8px; }
+.altgo{ appearance:none; margin-left:auto; border:1px solid var(--rule-strong); background:transparent; color:var(--ink); border-radius:999px; padding:2px 10px; font-size:11.5px; font-weight:600; cursor:pointer; }
+.altgo:hover{ background:color-mix(in srgb, var(--ink) 6%, transparent); }
+.altgo:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }

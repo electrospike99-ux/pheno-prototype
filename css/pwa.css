@@ -1,0 +1,5 @@
+/* the iPhone app build only (body.app-mode, set by js/pwa.js) */
+body.app-mode .fs-close, body.app-mode .fs-open, body.app-mode .bench{ display:none !important; }
+body.app-mode .device-fit{ height:calc(var(--app-h, 844px) * var(--fit, 1)); }
+body.app-mode .device, body.app-mode .screen{ height:var(--app-h, 844px); }
+body.app-mode{ -webkit-tap-highlight-color:transparent; overscroll-behavior:none; }

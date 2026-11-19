@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pheno onboarding prototype</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pheno">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=202611190137">
+<link rel="stylesheet" href="css/polish.css?v=202611190137">
+<link rel="stylesheet" href="css/fixes.css?v=202611190137">
+<link rel="stylesheet" href="css/pwa.css?v=202611190137">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="goo" x="-20%" y="-60%" width="140%" height="220%" color-interpolation-filters="sRGB">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="b"/>
+    <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" result="g"/>
+    <feComposite in="SourceGraphic" in2="g" operator="atop"/>
+  </filter></defs></svg>
+<main class="stage">
+  <div class="device-col">
+    <div class="device-fit"><div class="device">
+      <div class="screen" id="screen">
+        <div class="bg" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+        <div class="status" aria-hidden="true">
+          <span>9:41</span>
+          <span class="sys">
+            <svg width="19" height="12" viewBox="0 0 19 12" fill="#000"><rect x="0" y="8" width="3.2" height="4" rx=".9"/><rect x="5.1" y="5.6" width="3.2" height="6.4" rx=".9"/><rect x="10.2" y="3" width="3.2" height="9" rx=".9"/><rect x="15.3" y="0" width="3.2" height="12" rx=".9"/></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#000" stroke-width="2.1" stroke-linecap="round"><path d="M1.3 4.3a10.2 10.2 0 0 1 14.4 0"/><path d="M4 7a6.4 6.4 0 0 1 9 0"/><path d="M6.7 9.6a2.6 2.6 0 0 1 3.6 0L8.5 11.5z" fill="#000" stroke-width="1" stroke-linejoin="round"/></svg>
+            <svg width="28" height="13" viewBox="0 0 28 13" fill="none"><rect x=".5" y=".5" width="23" height="12" rx="3.6" stroke="#000" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.3" fill="#000"/><path d="M25.2 4.3v4.4c.9-.3 1.5-1.2 1.5-2.2s-.6-1.9-1.5-2.2z" fill="#000" opacity=".45"/></svg>
+          </span>
+        </div>
+
+        <section class="card" id="card" aria-live="polite">
+          <button class="corner back" id="backBtn" type="button" aria-label="Previous question"><svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 1.5 1.5 7.5l6 6"/></svg></button>
+          <button class="corner help" id="helpBtn" type="button" aria-label="Why we ask this" aria-expanded="false">?</button>
+          <div class="fade" id="fade">
+            <header class="qhead"><p class="eyebrow" id="eyebrow"></p><div class="qzone"><div class="qwrap"><p class="qpre" id="qpre" hidden></p><h2 class="qtext" id="qtext"></h2><p class="qsub" id="qsub" hidden></p></div></div></header>
+            <div class="zone" id="zone"></div>
+            <footer class="qfoot" id="foot"></footer>
+          </div>
+        </section>
+        <canvas id="gl" hidden aria-hidden="true"></canvas>
+        <canvas id="glOrb" hidden aria-hidden="true"></canvas>
+        <div class="app" id="app" hidden>
+          <button class="backarrow" id="l3back" type="button" aria-label="Back to home" inert><svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 1.5 1.5 7.5l6 6"/></svg></button>
+          <section class="page" id="pg-home" aria-label="Home">
+            <button class="orbhit" id="orbhit" type="button" aria-label="Open your dimensions"></button>
+            <div class="hometext" id="hometext">
+              <h1 class="h-title">Night Owl</h1>
+              <p class="h-desc">a fractured reactive Night Owl</p>
+              <div class="h-rule"></div>
+              <p class="h-eye">RECOMMENDATION</p>
+              <p class="h-rec">Try going to bed around<br><strong>11:42 PM</strong> tonight.</p>
+            </div>
+            <div class="l3head" id="l3head" inert><span class="k">YOUR DIMENSIONS</span><span class="n">11</span></div>
+            <div class="dims" id="dims" inert></div>
+          </section>
+          <section class="page locked" id="pg-analysis" hidden aria-label="Analysis (not designed yet)"><div class="mock"><i style="left:22px;right:22px;top:96px;height:120px"></i><i style="left:22px;right:22px;top:234px;height:220px"></i><i style="left:22px;width:166px;top:472px;height:130px"></i><i style="right:22px;width:166px;top:472px;height:130px"></i></div><div class="sym"></div></section>
+          <section class="page locked" id="pg-experiments" hidden aria-label="Experiments (not designed yet)"><div class="mock"><i style="left:22px;right:22px;top:110px;height:150px"></i><i style="left:22px;right:22px;top:278px;height:70px"></i><i style="left:22px;right:22px;top:362px;height:70px"></i><i style="left:22px;right:22px;top:446px;height:70px"></i><i style="left:22px;right:22px;top:540px;height:120px"></i></div><div class="sym"></div></section>
+          <section class="page locked" id="pg-profile" hidden aria-label="Profile (not designed yet)"><div class="mock"><i style="left:145px;width:100px;top:110px;height:100px;border-radius:50%"></i><i style="left:22px;right:22px;top:240px;height:90px"></i><i style="left:22px;right:22px;top:346px;height:90px"></i><i style="left:22px;right:22px;top:452px;height:150px"></i></div><div class="sym"></div></section>
+          <nav class="tabs" id="tabs" aria-label="Tabs"></nav>
+        </div>
+        <div class="home-ind" aria-hidden="true"></div>
+      </div>
+    </div></div>
+  </div>
+
+  <aside class="bench" aria-label="Prototype controls">
+    <h1>Onboarding</h1>
+    <p class="intro">The onboarding in the order from the backbone (07.10.26), with the current branching. Rough drafts of missing cards are in place and flagged for review.</p>
+    <div class="block">
+      <h2>Jump to a question</h2>
+      <div id="chapters"></div>
+      <p class="legend">Faded questions are currently hidden by an earlier answer (for example, therapy type only shows after “Hormonal therapy”).</p>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="pbtn" id="restartBtn" type="button">Restart</button><button class="pbtn" id="themeOrder" type="button">Theme screen: first</button></div>
+    </div>
+    <div class="block">
+      <h2>Design alternatives</h2>
+      <div id="alts"></div>
+    </div>
+    <div class="block">
+      <h2>The app</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="pbtn" id="toApp" type="button">Go to the app</button>
+        <button class="pbtn" id="toL3" type="button">Open layer 3</button>
+        <button class="pbtn" id="toOnb" type="button">Back to onboarding</button>
+      </div>
+      <p class="legend">Home is the original. Tap the orb for layer 3 (tap it again, or the arrow, to return). Analysis, Experiments and Profile are blurred until their designs are locked.</p>
+    </div>
+    <div class="block">
+      <h2>Closing beats preview</h2>
+      <div class="pvrow"><span>History</span><div class="jumps" data-pv="history"><button class="jump" data-v="auto">From the Health answer</button><button class="jump" data-v="with">With history</button><button class="jump" data-v="without">Without</button></div></div>
+      <div class="pvrow"><span>Tier</span><div class="jumps" data-pv="tier"><button class="jump" data-v="low">Low</button><button class="jump" data-v="medium">Medium</button><button class="jump" data-v="high">High</button></div></div>
+      <div class="pvrow"><span>Reveal</span><div class="jumps" data-pv="lean"><button class="jump" data-v="auto">From the answers</button><button class="jump" data-v="middle">Middle</button><button class="jump" data-v="late">Extreme: night owl</button><button class="jump" data-v="early">Extreme: early bird</button><button class="jump" data-v="gap">Gap</button><button class="jump" data-v="fallback">Fallback</button></div></div>
+      <div style="display:flex;gap:8px;margin-top:10px"><button class="pbtn" id="toClosing" type="button">Go to the closing beats</button></div>
+      <p class="legend">From the answers: a skipped slider, a timezone change or a recent event shows the fallback; work and ideal bedtimes 1.5 hours or more apart show the gap; otherwise the chronotype slider picks middle or an extreme. Thresholds for the tiers are pending, so the tier is a switch.</p>
+    </div>
+    <div class="block">
+      <h2>Answers so far</h2>
+      <pre class="answers" id="answers">Nothing answered yet.</pre>
+    </div>
+  </aside>
+</main>
+
+<script src="js/content.js?v=202611190137"></script>
+<script src="js/drafts.js?v=202611190137"></script>
+<script src="js/screens.js?v=202611190137"></script>
+<script src="js/controls.js?v=202611190137"></script>
+<script src="js/app.js?v=202611190137"></script>
+<script src="js/review.js?v=202611190137"></script>
+<script src="js/edit.js?v=202611190137"></script>
+<script src="js/full.js?v=202611190137"></script>
+<script src="js/beforeafter.js?v=202611190137"></script>
+<script src="js/pwa.js?v=202611190137"></script>
+<script src="js/main.js?v=202611190137"></script>
+</body>
+</html>

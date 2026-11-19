@@ -1,0 +1,121 @@
+/* ==============================================================================================
+   Polish pass (17.11.26): motion, touch feedback and materials, across the onboarding and the app.
+   Everything is scoped to .screen.polish, which the "Motion and polish" switch under Design
+   alternatives turns on and off. Chapter colours, typefaces, copy and layout are not changed here.
+   ============================================================================================== */
+.screen{ --ease-out:cubic-bezier(.22,1,.36,1); --ease-in:cubic-bezier(.4,0,1,1); --spring:cubic-bezier(.32,.72,0,1); --bounce:cubic-bezier(.3,1.3,.5,1); }
+@supports (transition-timing-function: linear(0, 1)){
+  /* a real spring (about 4% overshoot) where the browser can draw one */
+  .screen{ --bounce:linear(0, 0.041, 0.141, 0.272, 0.412, 0.548, 0.672, 0.777, 0.862, 0.928, 0.976, 1.01, 1.03, 1.042, 1.046, 1.045, 1.041, 1.035, 1.029, 1.022, 1.017, 1.012, 1.007, 1.004, 1.002, 1, 0.999, 0.998, 0.998, 0.998, 0.998, 0.998, 1); }
+}
+@keyframes p-rise{ from{ opacity:0; transform:translate3d(0,10px,0); } }
+@keyframes p-fade{ from{ opacity:0; } }
+@keyframes p-title{ from{ opacity:0; filter:blur(10px); transform:translate3d(0,8px,0) scale(.97); } }
+@keyframes p-pop{ from{ transform:scale(.55); } }
+@keyframes p-card-in{ from{ opacity:0; transform:translate3d(0,16px,0) scale(.985); } }
+@keyframes p-cardglow{ 30%{ box-shadow:0 0 0 4px color-mix(in srgb, var(--c) 15%, transparent), 0 0 60px -6px color-mix(in srgb, var(--c) 48%, transparent); } }
+@keyframes p-tabs-in{ from{ opacity:0; transform:translate3d(0,36px,0); } }
+@keyframes p-orb-in{ from{ opacity:0; transform:scale(.92); } }
+@keyframes p-drift1{ to{ translate:18px 14px; } }
+@keyframes p-drift2{ to{ translate:-16px -12px; } }
+@keyframes p-drift3{ to{ translate:-10px 18px; } }
+
+/* ---------- the phone itself: Dynamic Island, system type in the status bar ---------- */
+.screen.polish::before{ content:""; position:absolute; z-index:7; top:11px; left:50%; width:124px; height:36px; margin-left:-62px; border-radius:20px; background:#000; pointer-events:none; }
+.screen.polish .status{ align-items:center; padding:4px 30px 0 38px; font-family:-apple-system, "SF Pro Text", system-ui, var(--sans); font-size:17px; letter-spacing:-.02em; transition:color .45s ease; }
+
+/* ---------- ambient: the colour pools drift very slowly ---------- */
+.screen.polish .bg .b1{ animation:p-drift1 17s ease-in-out infinite alternate; }
+.screen.polish .bg .b2{ animation:p-drift2 21s ease-in-out infinite alternate; }
+.screen.polish .bg .b3{ animation:p-drift3 14s ease-in-out infinite alternate; }
+.screen.polish .bg i{ transition:opacity .7s ease, transform 1.1s var(--ease-out); }
+
+/* ---------- the card: a light glass material, spring resizing, a soft arrival ---------- */
+.screen.polish .card{
+  background:rgba(255,255,255,.84);
+  -webkit-backdrop-filter:blur(24px) saturate(1.5); backdrop-filter:blur(24px) saturate(1.5);
+  box-shadow:0 1px 2px rgba(16,17,20,.04), 0 24px 60px -28px color-mix(in srgb, var(--c) 55%, rgba(0,0,0,.45));
+  transition:left .55s var(--spring), top .55s var(--spring), width .55s var(--spring), height .55s var(--spring), border-color .6s ease, background-color .5s ease, box-shadow .5s ease,
+             transform .55s var(--spring), filter .45s ease, -webkit-backdrop-filter .5s ease, backdrop-filter .5s ease;
+  animation:p-card-in .8s var(--ease-out) backwards;
+}
+.screen.polish .card.glow{ animation:p-cardglow 1.1s var(--ease-out); }
+.screen.polish.dark .card{ background:rgba(20,21,26,.8); box-shadow:0 1px 2px rgba(0,0,0,.3), 0 24px 60px -28px color-mix(in srgb, var(--c) 45%, rgba(0,0,0,.85)); }
+.screen.polish .card.intro, .screen.polish.dark .card.intro{ background:transparent; -webkit-backdrop-filter:blur(0px) saturate(1); backdrop-filter:blur(0px) saturate(1); box-shadow:none; }
+
+/* ---------- moving between cards: the content pushes sideways like an iOS navigation push (reversed going back) ---------- */
+.screen.polish .fade{ transition:opacity .4s var(--ease-out), transform .6s var(--spring), filter .4s var(--ease-out); }
+.screen.polish .fade.out{ opacity:0; transform:translate3d(calc(var(--dir, 1) * -14px),0,0); filter:blur(3px); transition:opacity .15s var(--ease-in), transform .17s var(--ease-in), filter .15s var(--ease-in); }
+.screen.polish .fade.pre{ opacity:0; transform:translate3d(calc(var(--dir, 1) * 20px),0,0); filter:blur(3px); transition:none; }
+
+/* what is inside the card arrives in order: options one after another, then the buttons */
+.screen.polish .opts > *, .screen.polish .themes > *, .screen.polish .chips > *{ animation:p-rise .5s var(--ease-out) backwards; animation-delay:264ms; }
+.screen.polish .opts > :nth-child(1), .screen.polish .themes > :nth-child(1), .screen.polish .chips > :nth-child(1){ animation-delay:40ms; }
+.screen.polish .opts > :nth-child(2), .screen.polish .themes > :nth-child(2), .screen.polish .chips > :nth-child(2){ animation-delay:72ms; }
+.screen.polish .opts > :nth-child(3), .screen.polish .themes > :nth-child(3){ animation-delay:104ms; }
+.screen.polish .opts > :nth-child(4){ animation-delay:136ms; }
+.screen.polish .opts > :nth-child(5){ animation-delay:168ms; }
+.screen.polish .opts > :nth-child(6){ animation-delay:200ms; }
+.screen.polish .opts > :nth-child(7){ animation-delay:232ms; }
+.screen.polish .zone > .scale, .screen.polish .zone > .wheel, .screen.polish .zone > .sdial, .screen.polish .zone > div:not([class]){ animation:p-rise .55s var(--ease-out) 40ms backwards; }
+.screen.polish .beatwrap > *, .screen.polish .chap-mark > *, .screen.polish .perm > *, .screen.polish .theme-wrap > *{ animation:p-rise .6s var(--ease-out) backwards; animation-delay:300ms; }
+.screen.polish .beatwrap > :nth-child(1), .screen.polish .chap-mark > :nth-child(1), .screen.polish .perm > :nth-child(1), .screen.polish .theme-wrap > :nth-child(1){ animation-delay:50ms; }
+.screen.polish .beatwrap > :nth-child(2), .screen.polish .chap-mark > :nth-child(2), .screen.polish .perm > :nth-child(2), .screen.polish .theme-wrap > :nth-child(2){ animation-delay:130ms; }
+.screen.polish .beatwrap > :nth-child(3), .screen.polish .chap-mark > :nth-child(3), .screen.polish .perm > :nth-child(3), .screen.polish .theme-wrap > :nth-child(3){ animation-delay:210ms; }
+.screen.polish .beatwrap > .fuzzorb{ animation:p-fade .9s ease 50ms backwards, sway 11s ease-in-out infinite; }      /* keeps its own sway */
+.screen.polish .chap-mark h2, .screen.polish .theme-wrap h2{ animation-name:p-title; animation-duration:.8s; }
+.screen.polish .intro-mark h1{ animation:p-title 1.2s var(--ease-out) 80ms backwards; }
+.screen.polish .intro-mark p{ animation:p-rise .8s var(--ease-out) 520ms backwards; }
+.screen.polish .qfoot > *{ animation:p-rise .5s var(--ease-out) 140ms backwards; }
+.screen.polish .card.intro .qfoot > *{ animation-delay:420ms; }
+
+/* ---------- touch feedback: everything you can press gives a little, then springs back ---------- */
+.screen.polish .opt{ transition:background-color .25s ease, border-color .25s ease, color .35s ease, transform .45s var(--bounce); }
+.screen.polish .opt:active{ transform:scale(.972); transition:background-color .25s ease, border-color .25s ease, transform .11s ease-out; }
+.screen.polish .opt[aria-disabled="true"]:active{ transform:none; }
+.screen.polish .opt .tick{ transition:background-color .2s ease, border-color .2s ease; }
+.screen.polish .opt[aria-checked="true"] .tick{ animation:p-pop .45s var(--bounce); }
+.screen.polish .cta{ transition:opacity .3s ease, background .6s ease, transform .45s var(--bounce), filter .3s ease; }
+.screen.polish .cta:not(:disabled):active{ transform:scale(.97); filter:brightness(.93); transition:opacity .3s ease, background .6s ease, transform .11s ease-out, filter .11s ease-out; }
+.screen.polish .skip{ transition:opacity .2s ease, transform .45s var(--bounce); }
+.screen.polish .skip:active{ opacity:.5; transform:scale(.97); transition:opacity .1s ease, transform .11s ease-out; }
+.screen.polish .chipo, .screen.polish .th-opt, .screen.polish .sdday{ transition:background-color .3s ease, border-color .25s ease, color .3s ease, transform .45s var(--bounce); }
+.screen.polish .chipo:active, .screen.polish .th-opt:active{ transform:scale(.96); transition:background-color .3s ease, border-color .25s ease, transform .11s ease-out; }
+.screen.polish .sdday:active{ transform:scale(.88); transition:background-color .3s ease, transform .11s ease-out; }
+/* the round corner buttons fade and spring in and out instead of popping */
+.screen.polish .corner{ transition:opacity .3s ease, transform .5s var(--bounce), visibility 0s, background-color .35s ease, border-color .35s ease, color .35s ease; }
+.screen.polish .corner[hidden]{ display:grid !important; opacity:0; visibility:hidden; transform:scale(.6); pointer-events:none; transition:opacity .18s ease, transform .18s ease, visibility 0s .18s; }
+.screen.polish .corner:active{ transform:scale(.88); transition:transform .11s ease-out, background-color .35s ease; }
+.screen.polish .backarrow:active{ transform:scale(.88); }
+
+/* ---------- "why we ask": lifts in on a spring ---------- */
+.screen.polish .helpbox{ transform:translate3d(0,8px,0) scale(.95); transition:opacity .3s ease, transform .55s var(--spring); }
+.screen.polish .zone.helping .helpbox{ opacity:1; transform:none; }
+
+/* ---------- the Health sheet: iOS sheet timing; the card steps back behind it ---------- */
+.screen.polish .hk{ transition:opacity .4s ease; }
+.screen.polish .hk-sheet{ transition:transform .55s var(--spring); }
+.screen.polish:has(.hk.on) .card{ transform:translate3d(0,6px,0) scale(.94); filter:brightness(.9); }
+
+/* ---------- the app: it fades in, the tab bar rises, pages cross-fade, the current tab sits in a sliding capsule ---------- */
+.screen.polish .app{ animation:p-fade .6s ease backwards; }
+.screen.polish #gl{ animation:p-fade .8s ease backwards; }
+.screen.polish #glOrb{ transform-origin:50% 34.6%; animation:p-orb-in 1s var(--ease-out) backwards; }
+.screen.polish .hometext > *{ animation:p-rise .6s var(--ease-out) backwards; animation-delay:240ms; }
+.screen.polish .hometext > :nth-child(1){ animation-delay:80ms; }
+.screen.polish .hometext > :nth-child(2){ animation-delay:140ms; }
+.screen.polish .hometext > :nth-child(3){ animation-delay:190ms; }
+.screen.polish .page.locked{ animation:p-fade .4s ease backwards; }
+.screen.polish .page.locked .sym{ animation:p-pop .6s var(--bounce) backwards; }
+.screen.polish .tabs{ animation:p-tabs-in .8s var(--spring) 120ms backwards; }
+.screen.polish .tabs::before{ content:""; position:absolute; top:8px; left:calc(8.25px + var(--ti, 1) * 88.5px); width:72px; height:50px; border-radius:25px; background:rgba(16,17,20,.065); transition:left .55s var(--bounce), background-color .45s ease; }
+.screen.polish.dark .tabs::before{ background:rgba(255,255,255,.1); }
+.screen.polish .tabs button{ position:relative; transition:color .3s ease, transform .45s var(--bounce); }
+.screen.polish .tabs button:active{ transform:scale(.86); transition:color .3s ease, transform .11s ease-out; }
+
+@media (prefers-reduced-motion: reduce){
+  .screen.polish *, .screen.polish *::before{ animation-duration:.01s !important; animation-delay:0s !important; animation-iteration-count:1 !important; }
+  .screen.polish .fade.out, .screen.polish .fade.pre{ transform:none; filter:none; }
+  .screen.polish:has(.hk.on) .card{ transform:none; }
+  .screen.polish .tabs::before{ transition:none; }
+}
