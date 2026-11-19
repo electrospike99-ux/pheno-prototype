@@ -43,11 +43,34 @@
   /* behave like an app, not a web page: no pinch zoom, no double-tap zoom, no page bounce */
   const stop = e => e.preventDefault();
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(e => document.addEventListener(e, stop, { passive: false }));
-  document.addEventListener('touchmove', e => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, { passive: false });
+  /* the page itself must never scroll. The app is drawn to the real display (852 on an iPhone 15) while iOS reports a
+     shorter window (793), so the page had up to 59pt to scroll; even a nudge it can't show makes iOS place taps that far
+     off, and buttons stop responding. Only real scrolling areas inside the app (option lists, wheels, the journey ruler)
+     may move; everything else is pinned at the top. */
+  const scrollsHere = (node, dy, dx) => {
+    for (let n = node; n && n !== document.body && n.nodeType === 1; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      if (/(auto|scroll)/.test(cs.overflowY) && n.scrollHeight > n.clientHeight + 1) return true;
+      if (/(auto|scroll)/.test(cs.overflowX) && n.scrollWidth > n.clientWidth + 1) return true;
+    }
+    return false;
+  };
+  let t0 = null;
+  document.addEventListener('touchstart', e => { const t = e.touches[0]; t0 = t ? [t.clientX, t.clientY] : null; }, { passive: true, capture: true });
+  document.addEventListener('touchmove', e => {
+    if (e.touches.length > 1 || (e.scale && e.scale !== 1)) { e.preventDefault(); return; }
+    if (!scrollsHere(e.target)) e.preventDefault();
+  }, { passive: false });
+  const pin = () => { if (scrollX || scrollY) scrollTo(0, 0); const se = document.scrollingElement; if (se && (se.scrollTop || se.scrollLeft)) { se.scrollTop = 0; se.scrollLeft = 0; } };
+  addEventListener('scroll', pin, { passive: true });
+  if (window.visualViewport) visualViewport.addEventListener('scroll', pin);
+  document.addEventListener('touchend', () => setTimeout(pin, 0), { passive: true });
+  addEventListener('focusout', () => setTimeout(pin, 50));          // the keyboard closing can leave the page shifted too
+  pin();
 
   /* size check: shown by itself for ten seconds when this build first opens (and on three quick taps near the top),
      so the phone's own numbers can be screenshotted. Tap the box to hide it. */
-  const BUILD = '19.11 22:30';
+  const BUILD = '19.11 22:40';
   const measure = u => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;height:' + u;
     document.body.appendChild(d); const h = Math.round(d.getBoundingClientRect().height); d.remove(); return h; };
   const envPx = side => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;visibility:hidden;padding-' + side + ':env(safe-area-inset-' + side + ')';
@@ -60,7 +83,7 @@
     box.textContent = ['build ' + BUILD, 'app mode ' + standalone(), 'window ' + innerWidth + ' x ' + innerHeight, 'display ' + S.width + ' x ' + S.height,
       'page ' + document.documentElement.clientHeight + '   body ' + Math.round(bd.height), 'visual ' + (vv ? Math.round(vv.width) + ' x ' + Math.round(vv.height) : '-'),
       '100vh ' + measure('100vh') + '  lvh ' + measure('100lvh') + '  svh ' + measure('100svh') + '  dvh ' + measure('100dvh'),
-      'safe top ' + envPx('top') + '  bottom ' + envPx('bottom'), 'used ' + lastSize.map(Math.round).join(' x '),
+      'safe top ' + envPx('top') + '  bottom ' + envPx('bottom'), 'page scroll ' + Math.round(scrollY) + '  view offset ' + (vv ? Math.round(vv.offsetTop) : '-'), 'used ' + lastSize.map(Math.round).join(' x '),
       'drawn ' + Math.round(sc.width) + ' x ' + Math.round(sc.height) + ' at ' + Math.round(sc.top), '(tap to hide)'].join('\n');
     box.addEventListener('click', () => box.remove());
     document.body.appendChild(box);
@@ -68,6 +91,13 @@
   }
   let shownFor = null; try { shownFor = localStorage.getItem('pheno-readout'); } catch (e) {}
   if (isPhone() && shownFor !== BUILD) { setTimeout(showReadout, 1400); try { localStorage.setItem('pheno-readout', BUILD); } catch (e) {} }
+  /* tap check, for the first minute after this build opens: a dot appears exactly where the phone says you touched */
+  if (isPhone() && shownFor !== BUILD) {
+    const until = Date.now() + 60000;
+    document.addEventListener('touchstart', e => { if (Date.now() > until) return; const t = e.touches[0]; if (!t) return;
+      const d = document.createElement('i'); d.style.cssText = 'position:fixed;z-index:99998;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:rgba(255,40,90,.75);box-shadow:0 0 0 3px #fff;pointer-events:none;transition:opacity .8s ease .4s;left:' + t.clientX + 'px;top:' + t.clientY + 'px';
+      document.body.appendChild(d); requestAnimationFrame(() => { d.style.opacity = '0'; }); setTimeout(() => d.remove(), 1400); }, { passive: true, capture: true });
+  }
   let taps = [];
   document.addEventListener('touchstart', e => {
     if (e.touches[0].clientY > 140) return; const t = Date.now(); taps = taps.filter(x => t - x < 700).concat(t); if (taps.length < 3) return; taps = [];
