@@ -10,7 +10,8 @@
      which left a strip at the bottom; opened from the icon, the real display size is the truth */
   const size = () => {
     let W = innerWidth, H = innerHeight;
-    if (standalone() && isPhone()) {
+    // opened from the icon, or no browser bars showing (the gap to the real display is only the status bar's height or less)
+    if (isPhone() && (standalone() || Math.max(S.width, S.height) - Math.max(innerWidth, innerHeight) <= 64)) {
       const portrait = innerHeight >= innerWidth;
       const sw = portrait ? Math.min(S.width, S.height) : Math.max(S.width, S.height);
       const sh = portrait ? Math.max(S.width, S.height) : Math.min(S.width, S.height);
