@@ -1,17 +1,21 @@
 'use strict';
-/* the iPhone app build: opens straight into the bare phone screen, fills the real screen edge to edge, and hides the
-   prototype-only extras (the bench, the review marks, the way back to the bench). Not used on claude.ai. */
+/* the app build: this page is only the app. No prototype controls, no full-screen toggle, no phone frame.
+   On a phone the screen fills the real display edge to edge; on a computer it sits in the middle at phone size. */
 (function () {
-  const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
-  const small = Math.min(innerWidth, window.screen.width) < 600;   // window.screen: "screen" here is the phone element
-  if (!(standalone || small)) return;                                  // on a computer it stays the full prototype page
   document.body.classList.add('app-mode');
-  if (location.hash !== '#phone') { history.replaceState(null, '', location.pathname + location.search + '#phone'); dispatchEvent(new HashChangeEvent('hashchange')); }
-  // fill the width; if the screen is taller than the design, the design grows to meet it, otherwise it scales down whole
+  const isPhone = () => Math.min(innerWidth, window.screen.width) < 600;      // window.screen: "screen" here is the app's own element
   fit = function () {
-    const f = innerWidth / 390, h = innerHeight / f;
-    if (h >= 844) { document.documentElement.style.setProperty('--fit', f.toFixed(4)); document.documentElement.style.setProperty('--app-h', h.toFixed(1) + 'px'); }
-    else { document.documentElement.style.setProperty('--fit', Math.min(f, innerHeight / 844).toFixed(4)); document.documentElement.style.setProperty('--app-h', '844px'); }
+    const W = innerWidth, H = innerHeight, root = document.documentElement.style;
+    let f, h, ox = 0, oy = 0;
+    if (isPhone()) {
+      f = W / 390; h = H / f;                                               // fill the width; the design grows to the screen's height
+      if (h < 760) { f = H / 760; h = 760; ox = (W - 390 * f) / 2; }        // very short screens: scale down whole instead
+    } else {
+      f = Math.min(1, (H - 40) / 844); h = 844; ox = (W - 390 * f) / 2; oy = (H - 844 * f) / 2;
+    }
+    root.setProperty('--fit', f.toFixed(4)); root.setProperty('--app-h', h.toFixed(1) + 'px');
+    root.setProperty('--ox', ox.toFixed(1) + 'px'); root.setProperty('--oy', oy.toFixed(1) + 'px');
+    document.body.classList.toggle('app-desk', !isPhone());
   };
   fit(); requestAnimationFrame(() => { if (typeof fitZone === 'function') fitZone(); });
 })();

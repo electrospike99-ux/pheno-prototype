@@ -1,5 +1,15 @@
-/* the iPhone app build only (body.app-mode, set by js/pwa.js) */
-body.app-mode .fs-close, body.app-mode .fs-open, body.app-mode .bench{ display:none !important; }
-body.app-mode .device-fit{ height:calc(var(--app-h, 844px) * var(--fit, 1)); }
-body.app-mode .device, body.app-mode .screen{ height:var(--app-h, 844px); }
-body.app-mode{ -webkit-tap-highlight-color:transparent; overscroll-behavior:none; }
+/* the app build only (body.app-mode, set by js/pwa.js): just the app, drawn straight onto the screen */
+body.app-mode{ margin:0; overflow:hidden; background:#fff; -webkit-tap-highlight-color:transparent; overscroll-behavior:none; touch-action:manipulation; }
+body.app-mode:has(.screen.dark){ background:#0B0C0F; }
+body.app-mode .bench, body.app-mode .fs-open, body.app-mode .fs-close{ display:none !important; }
+body.app-mode .stage, body.app-mode .device-col, body.app-mode .device-fit, body.app-mode .device{ display:contents; }
+body.app-mode .screen{ position:fixed; left:var(--ox, 0px); top:var(--oy, 0px); width:390px; height:var(--app-h, 844px); margin:0;
+  border-radius:0; transform:scale(var(--fit, 1)); transform-origin:0 0; }
+/* the phone's own status bar, island and home bar are real now, so the drawn ones go; so do the review marks */
+body.app-mode .screen .status, body.app-mode .screen .home-ind, body.app-mode .screen.polish::before,
+body.app-mode .rvmark, body.app-mode .rvnote, body.app-mode .card.before-view::after{ display:none !important; }
+body.app-mode .card.has-rvnote .qfoot{ padding-bottom:22px !important; }
+/* on a computer: the app at phone size in the middle of the page */
+body.app-desk{ background:#E7E8EB; }
+body.app-desk:has(.screen.dark){ background:#15161A; }
+body.app-desk .screen{ border-radius:44px; box-shadow:0 30px 70px -30px rgba(10,12,30,.45); }
