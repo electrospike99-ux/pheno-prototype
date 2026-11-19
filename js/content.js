@@ -53,7 +53,7 @@ const Q = [
       'REM sleep behavior disorder', 'Nightmare disorder', 'Recurrent sleep paralysis', 'Sleep-related eating disorder', 'Teeth grinding (bruxism)',
       'Exploding head syndrome', 'Sleep-related groaning (catathrenia)', 'Obesity hypoventilation syndrome', 'Sleep-related leg cramps'] },
   { id: 'chrono', ch: 3, type: 'continuous', spectrum: true, text: 'Where do you think you **fall** on this **spectrum**?', sub: 'How early or late you think your body wants to fall asleep and wake up.', top: ['Early', 'Late'], anchors: ['“Early bird”', '“Night owl”'] },   // 0 = early bird, 1 = night owl
-  { id: 'sched', ch: 3, type: 'dial', text: 'What is your **work sleep window**?', sub: 'When you typically go to bed and wake up on work or school days.', days: true, toggle: 'My schedule varies week to week' },
+  { id: 'sched', ch: 3, type: 'dial', text: 'What is your **work sleep window**?', sub: 'When you typically go to bed and wake up on work or school days.', subShort: 'On work or school days.', days: true, toggle: 'My schedule varies week to week' },
   { id: 'ideal', ch: 3, type: 'dial', ghost: 'sched', text: 'If you could choose your **ideal sleep window**, what would it be?',
     extra: ['I don’t know, doesn’t matter to me', 'Whatever’s best for my body biologically'] },
   { id: 'jetlagFact', ch: 3, type: 'beat', text: 'Jet lag fact', render: w => renderJetlagFact(w) },   // draft
@@ -64,8 +64,8 @@ const Q = [
   { id: 'tzHours', ch: 4, type: 'wheel', text: 'How many **hours difference**?', show: A => A.tz === 'Yes' },
   { id: 'event', ch: 4, type: 'single', text: 'In the last week or so, has anything **significant happened** that could be **throwing off your sleep**, like a big change at work or something personal?',
     opts: ['Yes', 'No'] },
-  { id: 'doze', ch: 4, type: 'scale', text: 'Do you ever catch yourself **dozing off** when you didn’t mean to?', opts: ['Never', 'Rarely', 'Sometimes', 'Fairly often', 'Often'] },
-  { id: 'sleepy', ch: 4, type: 'scale', text: 'On an average day, how **sleepy** do you feel?', opts: ['Alert', 'Mostly alert', 'A little sleepy', 'Quite sleepy', 'Fighting sleep'] },
+  { id: 'doze', ch: 4, type: 'scale', graded: true, text: 'Do you ever catch yourself **dozing off** when you didn’t mean to?', opts: ['Never', 'Rarely', 'Sometimes', 'Fairly often', 'Often'] },
+  { id: 'sleepy', ch: 4, type: 'scale', graded: true, text: 'On an average day, how **sleepy** do you feel?', opts: ['Alert', 'Mostly alert', 'A little sleepy', 'Quite sleepy', 'Fighting sleep'] },
   { id: 'words', ch: 5, type: 'text', text: 'How would you **describe your own sleep**, in your own words?' },
   { id: 'privacy', ch: 6, type: 'beat', text: 'Privacy', render: w => renderPrivacy(w) },   // draft
   { id: 'perm1', ch: 6, type: 'permission', icon: 'health', tag: 'APPLE HEALTH', text: 'Connect Apple Health',

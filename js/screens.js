@@ -54,7 +54,7 @@ function build() {
   $('#helpBtn').hidden = !WHY[q.id];
   $('#eyebrow').textContent = CH[q.ch] ? 'Chapter ' + q.ch + ' — ' + ch.name : '';   // closing beats are not a chapter
   $('#qtext').innerHTML = rich(q.text);
-  const sub = $('#qsub'); sub.hidden = !q.sub; sub.textContent = q.sub || '';
+  const sub = $('#qsub'); sub.hidden = !subOf(q); sub.textContent = subOf(q) || '';
   const pre = $('#qpre'); pre.hidden = !q.pre; pre.textContent = q.pre || '';
   ({ beat: buildBeat, theme: buildTheme, intro: buildIntro, chapter: buildChapter,  single: buildSingle, multi: buildMulti, scale: buildScale, continuous: buildContinuous, date: buildDate, wheel: buildWheel, dial: buildDial, text: buildText, permission: buildPermission })[q.type](q);
   fitQuestion();
@@ -73,7 +73,7 @@ function openChapter(q) {
   const b = el('button', 'cta', 'Continue'); b.type = 'button'; foot.appendChild(b);
   b.addEventListener('click', () => {
     card.classList.add('unfolding'); card.classList.remove('opening'); b.remove(); kept.forEach(k => k.hidden = false); glow();
-    sub.style.opacity = '0'; setTimeout(() => { sub.hidden = !q.sub; sub.style.opacity = ''; sub.textContent = q.sub || ''; }, 260);
+    sub.style.opacity = '0'; setTimeout(() => { sub.hidden = !subOf(q); sub.style.opacity = ''; sub.textContent = subOf(q) || ''; }, 260);
     setTimeout(() => { card.classList.remove('unfolding'); $('#helpBtn').hidden = !WHY[q.id]; fitZone(); }, 760);
   });
 }
@@ -292,10 +292,13 @@ function makeTrack({ points, value, continuous, inverted, spectrum, precise, onC
 function buildScale(q) {
   const w = el('div', 'scale'); zone.appendChild(w);
   const now = el('div', 'now'); if (q.opts) w.appendChild(now);
-  // ISI items are shown worst on the left, best on the right (Very Dissatisfied ... Very Satisfied, Very Much ... None);
-  // the stored answer is still the ISI score (0 = best), so scoring is unchanged
-  const flip = !!q.isi, opts = q.opts ? (flip ? [...q.opts].reverse() : q.opts) : null;
-  const score = pos => flip ? 4 - pos : pos;            // position on the track <-> ISI score (the mapping is its own inverse)
+  // Every graded scale (the seven insomnia items, dozing off, sleepiness) lists its options from no problem to most problem,
+  // and the stored answer is that index: the ISI score for the insomnia items (0 = no problem), 0 = Never / Alert for the other two.
+  // Which end the good answer sits on is only how it's drawn (the "Scale direction" switch beside the phone):
+  //   A: the problem grows to the right everywhere (the questionnaire's own order).   B: the good answer is on the right everywhere.
+  const flip = (!!q.isi || !!q.graded) && typeof ALT === 'object' && ALT.scaleDir === 'B';
+  const opts = q.opts ? (flip ? [...q.opts].reverse() : q.opts) : null;
+  const score = pos => flip ? 4 - pos : pos;            // position on the track <-> stored score (the mapping is its own inverse)
   const prev = A[q.id];
   const cur = typeof prev === 'number' ? score(prev) : null;   // position
   let btn;
@@ -389,6 +392,8 @@ const DAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'], DAY_NAMES = ['Monday', 'Tuesda
    window always sits centred at the top. Drag an end circle to change bedtime or wake-up (the face re-centres when
    you let go), drag the arc to move the whole window, or drag the face to spin it. 15-minute steps. */
 function buildDial(q) {
+  if (typeof ALT === 'object' && ALT.dialv === 'times') return buildDialTimes(q);   // simpler versions ("Sleep window" switch), js/dial2.js
+  if (typeof ALT === 'object' && ALT.dialv === 'bar') return buildDialBar(q);
   const saved = v => v && typeof v === 'object' && v.abs ? v : null;
   const prev = saved(A[q.id]), ghost = q.ghost ? saved(A[q.ghost]) : null;
   const s = prev ? { bed: prev.bed, dur: Math.min(12, prev.dur) } : ghost ? { bed: ghost.bed, dur: Math.min(12, ghost.dur) } : { bed: 22.5, dur: 8 };

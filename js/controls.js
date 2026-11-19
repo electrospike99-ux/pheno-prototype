@@ -43,7 +43,11 @@ function renderJumps() {
 }
 function logAnswers() {
   const keys = Object.keys(A);
-  $('#answers').textContent = keys.length ? keys.map(k => k + ': ' + (typeof A[k] === 'object' ? JSON.stringify(A[k]) : A[k])).join('\n') : 'Nothing answered yet.';
+  const lines = keys.map(k => k + ': ' + (typeof A[k] === 'object' ? JSON.stringify(A[k]) : A[k]));
+  // the ISI-3 total from the stored scores (0 to 4 each, 0 = no problem), so the switch beside the phone can be checked against it
+  const i3 = Q.filter(q => q.isi3).map(q => A[q.id]);
+  if (i3.some(v => v !== undefined)) lines.push('ISI-3 total: ' + (i3.every(v => typeof v === 'number') ? i3.reduce((a, b) => a + b, 0) + ' of 12' : 'incomplete'));
+  $('#answers').textContent = keys.length ? lines.join('\n') : 'Nothing answered yet.';
 }
 
 /* ================= fit the phone to the window ================= */

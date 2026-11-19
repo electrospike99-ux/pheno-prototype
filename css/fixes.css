@@ -197,3 +197,46 @@ body.clean .card.before-view::after{ display:none; }
 .altgo{ appearance:none; margin-left:auto; border:1px solid var(--rule-strong); background:transparent; color:var(--ink); border-radius:999px; padding:2px 10px; font-size:11.5px; font-weight:600; cursor:pointer; }
 .altgo:hover{ background:color-mix(in srgb, var(--ink) 6%, transparent); }
 .altgo:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+/* ---------- sleep window, simpler versions (js/dial2.js) ---------- */
+.dl2, .dl3{ width:100%; display:flex; flex-direction:column; gap:12px; transition:opacity .25s ease; }
+.dl-days{ display:flex; flex-direction:column; gap:8px; }
+.dl-dline{ display:flex; align-items:center; gap:8px; font-size:14px; color:#2A2C33; }
+.dl-dline .k{ color:#8A8D98; }
+.dl-dline span:nth-child(2){ font-weight:600; }
+.dl-change{ appearance:none; margin-left:auto; border:0; background:none; padding:4px 2px; font:inherit; font-size:14px; font-weight:600; color:color-mix(in srgb, var(--c) 85%, #000); cursor:pointer; }
+.dl-ico{ flex:none; width:34px; height:34px; border-radius:50%; display:grid; place-items:center; }
+.dl-ico.bed{ background:#24285C; color:#E9E6FF; }
+.dl-ico.wake{ background:#FFE7A8; color:#B26A00; }
+.dl2-list{ border-radius:18px; background:#F4F5F7; overflow:hidden; }
+.dl2-row{ appearance:none; width:100%; display:flex; align-items:center; gap:12px; padding:12px 14px; border:0; background:none; font:inherit; color:#16171B; cursor:pointer; text-align:left; }
+.dl2-row + .dl2-row{ border-top:1px solid rgba(16,17,20,.07); }
+.dl2-row .lab{ flex:1; font-size:16px; }
+.dl2-row b{ font-size:17px; font-weight:600; font-variant-numeric:tabular-nums; padding:4px 10px; border-radius:9px; background:rgba(16,17,20,.06); }
+.dl2-row:active{ background:rgba(16,17,20,.04); }
+.dl-dur{ margin:0; text-align:center; font-size:13.5px; color:#6A6E7A; font-variant-numeric:tabular-nums; }
+.dl-ghost{ margin:0; text-align:center; font-size:13px; color:#8A8D98; }
+.dl2.off .dl2-list, .dl2.off .dl-dur, .dl3.off .dl3-times, .dl3.off .dl3-bar, .dl3.off .dl-dur{ opacity:.35; }
+.dl3-times{ display:flex; justify-content:space-between; gap:8px; }
+.dl3-t{ appearance:none; display:flex; align-items:center; gap:8px; border:0; background:none; padding:2px; font:inherit; color:#16171B; cursor:pointer; text-align:left; }
+.dl3-t.wake{ flex-direction:row-reverse; text-align:right; }
+.dl3-t .lab{ display:block; font-size:11.5px; color:#8A8D98; }
+.dl3-t b{ display:block; font-size:16px; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.dl3-t .lab{ white-space:nowrap; }
+.dl3-t .tx{ display:flex; flex-direction:column; line-height:1.2; }
+.dl3-t.wake .tx{ align-items:flex-end; }
+.dl3-bar{ position:relative; height:44px; margin:4px 20px 0; border-radius:22px; background:#EEF0F3; touch-action:none; }
+.dl3-fill{ position:absolute; top:6px; bottom:6px; border-radius:16px; background:linear-gradient(90deg, #3A3F8F, var(--c) 55%, #F6B93B); }
+.dl3-h{ position:absolute; top:50%; width:40px; height:40px; margin:-20px 0 0 -20px; border-radius:50%; display:grid; place-items:center; cursor:grab; box-shadow:0 2px 8px rgba(0,0,0,.22), 0 0 0 3px #fff; transition:transform .25s cubic-bezier(.3,1.3,.5,1); }
+.dl3-h.bed{ background:#24285C; color:#E9E6FF; } .dl3-h.wake{ background:#FFD86B; color:#9A5A00; }
+.dl3-h.drag{ transform:scale(1.12); cursor:grabbing; }
+.dl3-h:focus-visible{ outline:2px solid var(--c); outline-offset:3px; }
+.dl3-ax{ position:relative; height:16px; margin:0 20px; font-size:10.5px; color:#8A8D98; }
+.dl3-ax span{ position:absolute; transform:translateX(-50%); white-space:nowrap; }
+.dl3-ax span:first-child{ transform:none; }
+.screen.dark .dl-dline, .screen.dark .dl2-row, .screen.dark .dl3-t{ color:#ECEDF1; }
+.screen.dark .dl2-list{ background:#1C1E24; } .screen.dark .dl2-row + .dl2-row{ border-top-color:rgba(255,255,255,.07); }
+.screen.dark .dl2-row b{ background:rgba(255,255,255,.08); }
+.screen.dark .dl3-bar{ background:#22242B; } .screen.dark .dl3-h{ box-shadow:0 2px 8px rgba(0,0,0,.5), 0 0 0 3px #15161B; }
+.screen.dark .dl-change{ color:color-mix(in srgb, var(--c) 60%, #fff); }
+.screen.dark .dl-ico.bed{ background:#3A3F8F; }
