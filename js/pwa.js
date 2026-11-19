@@ -42,6 +42,27 @@
   const stop = e => e.preventDefault();
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(e => document.addEventListener(e, stop, { passive: false }));
   document.addEventListener('touchmove', e => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, { passive: false });
-  let lastTap = 0;
-  document.addEventListener('touchend', e => { const t = Date.now(); if (t - lastTap < 300) e.preventDefault(); lastTap = t; }, { passive: false });
+
+  if (matchMedia('(hover: none)').matches || 'ontouchstart' in window) {
+    /* iOS only shows pressed states (:active) when the page listens for touches */
+    document.addEventListener('touchstart', () => {}, { passive: true });
+    /* a tap leaves :hover stuck on a finger device (an option stays grey on the next card): drop hover styles */
+    for (const sh of document.styleSheets) {
+      let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+      const strip = list => { for (let i = list.length - 1; i >= 0; i--) { const r = list[i];
+        if (r.cssRules && !r.selectorText) { strip(r.cssRules); continue; }
+        if (!r.selectorText || !r.selectorText.includes(':hover')) continue;
+        const keep = r.selectorText.split(',').filter(x => !x.includes(':hover'));
+        if (keep.length) r.selectorText = keep.join(','); else (r.parentRule || sh).deleteRule(i); } };
+      strip(rules);
+    }
+    /* swipe in from the left edge to go back a card, like any iPhone app */
+    let sx = null, sy = 0;
+    document.addEventListener('touchstart', e => { const t = e.touches[0]; sx = (e.touches.length === 1 && t.clientX < 28) ? t.clientX : null; sy = t.clientY; }, { passive: true });
+    document.addEventListener('touchend', e => {
+      if (sx == null) return; const t = e.changedTouches[0], dx = t.clientX - sx, dy = Math.abs(t.clientY - sy); sx = null;
+      const back = document.getElementById('backBtn');
+      if (dx > 70 && dy < 60 && back && !back.hidden) back.click();
+    }, { passive: true });
+  }
 })();
