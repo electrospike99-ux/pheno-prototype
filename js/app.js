@@ -676,6 +676,9 @@ function stepDims(d) { const n = Math.max(0, Math.min(DIM_PAGES - 1, dimPage + d
 
 /* ---------- design alternatives: every suggested alternate version gets a switch beside the phone ---------- */
 const ALTS = [
+  { id: 'ctaPos', name: 'Continue button position', note: 'Same spot: the main button sits where it is on the question cards on every card, with Skip or Not now just under it. Per card: as before, each card type put it at its own height.',
+    options: [['same', 'Same spot'], ['card', 'Per card']],
+    apply: () => { if (typeof alignCta === 'function') alignCta(); } },
   { id: 'chronoCol', name: 'Chronotype card colours', note: 'Brand: this card alone uses the company’s orange and purple in the background, blurred a little more, with an outline in the spectrum’s colours. Chapter colour: the usual teal.',
     options: [['brand', 'Brand'], ['chapter', 'Chapter colour']],
     apply: () => { if (typeof Q !== 'undefined' && Q[idx] && Q[idx].id === 'chrono') build(); } },
@@ -704,6 +707,7 @@ const ALTS = [
 // where each alternative first shows up: a card id, or a function giving one ('app:l3' opens layer 3)
 const firstWhere = test => { const i = Q.findIndex((q, k) => test(q) && visible(k)); return i < 0 ? null : Q[i].id; };
 const ALT_GO = {
+  ctaPos: () => Q[0].id,                                                          // every card: from the first
   chronoCol: 'chrono',
   intentReply: () => ALT.intentReply === 'on' ? 'intentReply' : 'intent',          // off: the question it would follow
   infocard: () => firstWhere(q => q.type === 'beat' || q.type === 'chapter'),
