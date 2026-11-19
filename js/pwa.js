@@ -38,9 +38,18 @@
     root.setProperty('--ox', ox.toFixed(1) + 'px'); root.setProperty('--oy', oy.toFixed(1) + 'px');
     document.body.classList.toggle('app-desk', !isPhone());
   };
-  /* the phone's status bar strip takes the app's background: white, or near-black in dark mode */
+  /* the phone's status bar strip takes the app's background colour. iOS 26 colours it from the theme-color tag and from
+     whatever is pinned to the very top of the page, so both follow the app: white in light mode, the app's near-black in dark */
   const tc = document.querySelector('meta[name="theme-color"]');
-  const paintBar = () => { if (tc) tc.setAttribute('content', document.getElementById('screen').classList.contains('dark') ? '#0B0C0F' : '#ffffff'); };
+  const cap = document.createElement('div'); cap.id = 'barCap';
+  cap.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;z-index:2;pointer-events:none';
+  document.body.appendChild(cap);
+  const paintBar = () => {
+    // straight from the theme, not the drawn colour: the background fades between the two, so mid-fade it reads wrong
+    const col = document.getElementById('screen').classList.contains('dark') ? '#0b0c0f' : '#ffffff';
+    cap.style.background = col; document.body.style.backgroundColor = col;
+    if (tc) tc.setAttribute('content', col);
+  };
   new MutationObserver(paintBar).observe(document.getElementById('screen'), { attributes: true, attributeFilter: ['class'] }); paintBar();
 
   const refit = () => { fit(); requestAnimationFrame(() => { if (typeof fitZone === 'function') fitZone(); }); };
@@ -79,7 +88,7 @@
 
   /* size check: shown by itself for ten seconds when this build first opens (and on three quick taps near the top),
      so the phone's own numbers can be screenshotted. Tap the box to hide it. */
-  const BUILD = '19.11 23:00';
+  const BUILD = '19.11 23:59';
   const measure = u => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;height:' + u;
     document.body.appendChild(d); const h = Math.round(d.getBoundingClientRect().height); d.remove(); return h; };
   const envPx = side => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;visibility:hidden;padding-' + side + ':env(safe-area-inset-' + side + ')';
