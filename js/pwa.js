@@ -19,9 +19,10 @@
     }
     return [W, H];
   };
+  let lastSize = [0, 0];
   fit = function () {
     const [W, H] = size(), root = document.documentElement.style;
-    let f, h, ox = 0, oy = 0;
+    let f, h, ox = 0, oy = 0; lastSize = [W, H];
     if (isPhone()) {
       f = W / 390; h = H / f;                                               // fill the width; the design grows to the screen's height
       if (h < 760) { f = H / 760; h = 760; ox = (W - 390 * f) / 2; }        // very short screens: scale down whole instead
@@ -29,6 +30,7 @@
       f = Math.min(1, (H - 40) / 844); h = 844; ox = (W - 390 * f) / 2; oy = (H - 844 * f) / 2;
     }
     root.setProperty('--fit', f.toFixed(4)); root.setProperty('--app-h', h.toFixed(1) + 'px');
+    root.setProperty('--doc-h', H.toFixed(1) + 'px');
     root.setProperty('--ox', ox.toFixed(1) + 'px'); root.setProperty('--oy', oy.toFixed(1) + 'px');
     document.body.classList.toggle('app-desk', !isPhone());
   };
@@ -42,6 +44,20 @@
   const stop = e => e.preventDefault();
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(e => document.addEventListener(e, stop, { passive: false }));
   document.addEventListener('touchmove', e => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, { passive: false });
+
+  /* hidden check for sizing problems: three quick taps on the status bar area show what the phone reports */
+  let taps = [];
+  document.addEventListener('touchstart', e => {
+    if (e.touches[0].clientY > 44) return; const t = Date.now(); taps = taps.filter(x => t - x < 700).concat(t); if (taps.length < 3) return; taps = [];
+    let box = document.getElementById('sizeReadout'); if (box) { box.remove(); return; }
+    box = document.createElement('pre'); box.id = 'sizeReadout';
+    box.style.cssText = 'position:fixed;left:8px;top:60px;z-index:99999;margin:0;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.82);color:#fff;font:12px/1.5 ui-monospace,monospace;pointer-events:none';
+    const sc = document.getElementById('screen').getBoundingClientRect(), vv = window.visualViewport;
+    box.textContent = ['window ' + innerWidth + ' x ' + innerHeight, 'display ' + S.width + ' x ' + S.height, 'page ' + document.documentElement.clientHeight,
+      'visual ' + (vv ? Math.round(vv.width) + ' x ' + Math.round(vv.height) : '-'), 'app mode ' + standalone(), 'used ' + lastSize.map(Math.round).join(' x '),
+      'drawn ' + Math.round(sc.width) + ' x ' + Math.round(sc.height) + ' at ' + Math.round(sc.top)].join('\n');
+    document.body.appendChild(box);
+  }, { passive: true });
 
   if (matchMedia('(hover: none)').matches || 'ontouchstart' in window) {
     /* iOS only shows pressed states (:active) when the page listens for touches */
