@@ -41,12 +41,15 @@
   /* the phone's status bar strip takes the app's background colour. iOS 26 colours it from the theme-color tag and from
      whatever is pinned to the very top of the page, so both follow the app: white in light mode, the app's near-black in dark */
   const tc = document.querySelector('meta[name="theme-color"]');
+  // first thing on launch: the strip colour from last time, in case iOS only reads it as the app opens
+  try { const last = localStorage.getItem('pheno-bar'); if (last && tc) tc.setAttribute('content', last); } catch (e) {}
   const cap = document.createElement('div'); cap.id = 'barCap';
   cap.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;z-index:2;pointer-events:none';
   document.body.appendChild(cap);
   const paintBar = () => {
     // straight from the theme, not the drawn colour: the background fades between the two, so mid-fade it reads wrong
-    const col = document.getElementById('screen').classList.contains('dark') ? '#0b0c0f' : '#ffffff';
+    const dark = document.getElementById('screen').classList.contains('dark'), col = dark ? '#0b0c0f' : '#ffffff';
+    try { localStorage.setItem('pheno-bar', col); } catch (e) {}       // remembered, so the next launch starts with it
     cap.style.background = col; document.body.style.backgroundColor = col;
     if (tc) tc.setAttribute('content', col);
   };
@@ -88,7 +91,7 @@
 
   /* size check: shown by itself for ten seconds when this build first opens (and on three quick taps near the top),
      so the phone's own numbers can be screenshotted. Tap the box to hide it. */
-  const BUILD = '20.11 11:10';
+  const BUILD = '20.11 11:25';
   const measure = u => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;height:' + u;
     document.body.appendChild(d); const h = Math.round(d.getBoundingClientRect().height); d.remove(); return h; };
   const envPx = side => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;visibility:hidden;padding-' + side + ':env(safe-area-inset-' + side + ')';
