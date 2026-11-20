@@ -88,7 +88,7 @@
 
   /* size check: shown by itself for ten seconds when this build first opens (and on three quick taps near the top),
      so the phone's own numbers can be screenshotted. Tap the box to hide it. */
-  const BUILD = '19.11 23:59';
+  const BUILD = '20.11 11:10';
   const measure = u => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:0;top:0;width:1px;visibility:hidden;height:' + u;
     document.body.appendChild(d); const h = Math.round(d.getBoundingClientRect().height); d.remove(); return h; };
   const envPx = side => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;visibility:hidden;padding-' + side + ':env(safe-area-inset-' + side + ')';
