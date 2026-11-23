@@ -22,3 +22,6 @@ body.app-mode input, body.app-mode textarea{ -webkit-user-select:text; user-sele
 /* belt and braces: the page's own backdrop carries the bottom glow too, so no hard line can show under the app */
 body.app-mode:not(.app-desk){ background:radial-gradient(120% 60% at 100% 100%, color-mix(in srgb, #7C83C8 45%, transparent), transparent 60%), #fff; }
 body.app-mode:not(.app-desk):has(.screen.dark){ background:radial-gradient(120% 60% at 100% 100%, color-mix(in srgb, #2A2F6E 70%, transparent), transparent 60%), #0B0C0F; }
+
+/* the question track never shows over the app's own screens (home, layer 3) */
+.screen.inapp .editbar{ display:none !important; }

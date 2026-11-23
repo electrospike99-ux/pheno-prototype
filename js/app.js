@@ -676,15 +676,25 @@ function stepDims(d) { const n = Math.max(0, Math.min(DIM_PAGES - 1, dimPage + d
 
 /* ---------- design alternatives: every suggested alternate version gets a switch beside the phone ---------- */
 const ALTS = [
+  { id: 'schedWording', name: 'Work sleep window: wording', note: 'The question after the work days card. 1: “On those days, when do you sleep?” 2: “What’s your sleep window on those days?” 3: as before, “What is your work sleep window?”',
+    options: [['those', '1 · When do you sleep'], ['window', '2 · Sleep window on those days'], ['old', '3 · As before']],
+    apply: v => { const q = typeof Q !== 'undefined' && Q.find(x => x.id === 'sched'); if (!q) return;
+      Object.assign(q, ({ those: { text: 'On those days, **when do you sleep**?', sub: 'Roughly when you go to bed and when you wake up.' },
+        window: { text: 'What’s your **sleep window** on those days?', sub: 'When you usually go to bed and wake up.' },
+        old: { text: 'What is your **work sleep window**?', sub: 'When you typically go to bed and wake up on those days.' } })[v] || {});
+      if (!(typeof appOn !== 'undefined' && appOn) && Q[idx] === q) build(); } },
+  { id: 'nightsUnit', name: 'Nights card: “nights”', note: 'Under: “nights” sits under the number. Beside: it sits to the right of the number, on the same line.',
+    options: [['under', 'Under the number'], ['beside', 'Beside the number']],
+    apply: () => { if (typeof Q !== 'undefined' && !(typeof appOn !== 'undefined' && appOn) && Q[idx] && Q[idx].id === 'nights') build(); } },
+  { id: 'jlPreview', name: 'Jet lag card: preview', note: 'From the answers: the card picks its version from the two sleep windows (and is skipped when neither was answered). The others force one version to look at: two different windows, two that match, or only one answered.',
+    options: [['auto', 'From the answers'], ['gap', 'Different'], ['match', 'They match'], ['one', 'Only one']],
+    apply: () => { if (typeof Q !== 'undefined' && !(typeof appOn !== 'undefined' && appOn) && Q[idx] && Q[idx].id === 'jetlagFact') build(); if (typeof renderJumps === 'function') renderJumps(); } },
   { id: 'ctaPos', name: 'Continue button position', note: 'Same spot: the main button sits where it is on the question cards on every card, with Skip or Not now just under it. Per card: as before, each card type put it at its own height.',
     options: [['same', 'Same spot'], ['card', 'Per card']],
     apply: () => { if (typeof alignCta === 'function') alignCta(); } },
   { id: 'chronoCol', name: 'Chronotype card colours', note: 'Brand: this card alone uses the company’s orange and purple in the background, blurred a little more, with an outline in the spectrum’s colours. Chapter colour: the usual teal.',
     options: [['brand', 'Brand'], ['chapter', 'Chapter colour']],
     apply: () => { if (typeof Q !== 'undefined' && Q[idx] && Q[idx].id === 'chrono') build(); } },
-  { id: 'intentReply', name: 'Reply to “Why are you here?”', note: 'Suggestion: a card straight after the first question that answers their reason, ties it to what Pheno is about, and says what comes next.',
-    options: [['off', 'Off'], ['on', 'Reply card']],
-    apply: () => { if (typeof renderJumps === 'function' && typeof Q !== 'undefined') renderJumps(); } },
   { id: 'infocard', name: 'Cards without a question', note: 'Fact, chapter and closing cards: the same size as the questions, as big as the permission cards, a little smaller, or no card at all (full screen).',
     options: [['same', 'Same size'], ['big', 'Bigger'], ['small', 'Smaller'], ['none', 'No card']],
     apply: v => { ['big', 'small', 'none'].forEach(k => screen.classList.toggle('ic-' + k, v === k)); if (typeof fitZone === 'function') requestAnimationFrame(fitZone); } },
@@ -713,9 +723,10 @@ const ALTS = [
 // where each alternative first shows up: a card id, or a function giving one ('app:l3' opens layer 3)
 const firstWhere = test => { const i = Q.findIndex((q, k) => test(q) && visible(k)); return i < 0 ? null : Q[i].id; };
 const ALT_GO = {
+  schedWording: () => 'sched',
+  nightsUnit: () => 'nights', jlPreview: () => 'jetlagFact',
   ctaPos: () => Q[0].id,                                                          // every card: from the first
   chronoCol: 'chrono',
-  intentReply: () => ALT.intentReply === 'on' ? 'intentReply' : 'intent',          // off: the question it would follow
   infocard: () => firstWhere(q => q.type === 'beat' || q.type === 'chapter'),
   polish: () => Q[0].id,                                                          // everywhere: from the very first card
   closingCol: () => firstWhere(q => q.ch === 7),

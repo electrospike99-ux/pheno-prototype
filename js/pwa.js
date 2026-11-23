@@ -3,6 +3,10 @@
    On a phone the screen fills the real display edge to edge; on a computer it sits in the middle at phone size. */
 (function () {
   document.body.classList.add('app-mode');
+  /* the design choices for the app (picked by Auri, 23.11.26); everything else stays on its default.
+     Set here so they hold whatever an older visit saved in this browser. */
+  const APP_ALTS = { infocard: 'none', nightsUnit: 'beside', journey: 'draw', l3dims: 'paged', navtrack: 'always', schedWording: 'window' };
+  if (typeof ALTS !== 'undefined') Object.entries(APP_ALTS).forEach(([k, v]) => { const a = ALTS.find(x => x.id === k); if (!a) return; ALT[k] = v; try { a.apply(v); } catch (e) {} });
   const S = window.screen;                                                   // window.screen: "screen" here is the app's own element
   const isPhone = () => Math.min(innerWidth, S.width) < 600;
   const standalone = () => navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;

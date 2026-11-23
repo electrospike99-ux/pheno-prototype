@@ -23,12 +23,12 @@ const Q = [
   { id: 'intent', ch: 0, type: 'single', opening: true, text: '**Why** are you here?',
     opts: ['My sleep isn’t working for me', 'I sleep fine, but I want to understand it better', 'I’m just curious about myself', 'I already track my sleep, I want a better read on it'] },
   // suggestion (design alternative, off by default): a card that answers whatever they chose, ties it to what Pheno is, and points to what comes next
-  { id: 'intentReply', ch: 0, type: 'beat', text: 'Reply to “Why are you here?”', show: A => typeof ALT === 'object' && ALT.intentReply === 'on' && typeof A.intent === 'string' && A.intent !== 'skipped', render: w => renderIntentReply(w) },
+  { id: 'intentReply', ch: 0, type: 'beat', text: 'Reply to “Why are you here?”', show: A => typeof A.intent === 'string' && A.intent !== 'skipped', render: w => renderIntentReply(w) },   // 20.11.26: part of the flow, no longer behind a switch
   { id: 'dob', ch: 1, type: 'date', text: 'What’s your **date of birth**?', required: true },
   { id: 'ageSay', ch: 1, type: 'beat', auto: 1900, text: 'Your age', render: w => renderAgeSay(w) },   // no buttons: shows for about 2 seconds, then the age fact
   { id: 'ageFact', ch: 1, type: 'beat', text: 'Age fact', render: w => renderAgeFact(w) },   // draft
   { id: 'nights', ch: 1, type: 'beat', text: 'Nights slept', render: renderNights },
-  { id: 'sex', ch: 1, type: 'single', text: 'What **sex** were you **assigned at birth**?', opts: ['Male', 'Female'], required: true },
+  { id: 'sex', ch: 1, type: 'single', instant: true, text: 'What **sex** were you **assigned at birth**?', opts: ['Male', 'Female'], required: true },
   { id: 'hormone', ch: 1, type: 'multi', text: 'Do any of these **apply to you**?', sub: 'Select all that apply.', show: A => A.sex === 'Female' || A.sex === 'Male',
     disableFor: { Male: ['Pregnant', 'Breastfeeding', 'Perimenopause or menopause', 'Hormonal birth control'] },
     opts: ['Pregnant', 'Breastfeeding', 'Perimenopause or menopause', 'Hormonal birth control', 'Hormonal therapy'] },
@@ -53,10 +53,16 @@ const Q = [
       'REM sleep behavior disorder', 'Nightmare disorder', 'Recurrent sleep paralysis', 'Sleep-related eating disorder', 'Teeth grinding (bruxism)',
       'Exploding head syndrome', 'Sleep-related groaning (catathrenia)', 'Obesity hypoventilation syndrome', 'Sleep-related leg cramps'] },
   { id: 'chrono', ch: 3, type: 'continuous', spectrum: true, text: 'Where do you think you **fall** on this **spectrum**?', sub: 'How early or late you think your body wants to fall asleep and wake up.', top: ['Early', 'Late'], anchors: ['“Early bird”', '“Night owl”'] },   // 0 = early bird, 1 = night owl
-  { id: 'sched', ch: 3, type: 'dial', text: 'What is your **work sleep window**?', sub: 'When you typically go to bed and wake up on work or school days.', subShort: 'On work or school days.', days: true, toggle: 'My schedule varies week to week' },
+  // 20.11.26: the work sleep window split in two. First the days (and whether the schedule varies), then the window on its own, like the ideal one
+  { id: 'schedDays', ch: 3, type: 'days', text: 'Which days do you **work or study**?', sub: 'Tap a day to add or take it away.', toggle: 'My schedule varies week to week', toggleKey: 'schedVaries' },   // draft wording
+  { id: 'sched', ch: 3, type: 'dial', text: 'On those days, **when do you sleep**?', sub: 'Roughly when you go to bed and when you wake up.', subShort: 'On your work or study days.' },   // 21.11.26 reword; options under Design alternatives
   { id: 'ideal', ch: 3, type: 'dial', ghost: 'sched', text: 'If you could choose your **ideal sleep window**, what would it be?',
     extra: ['I don’t know, doesn’t matter to me', 'Whatever’s best for my body biologically'] },
-  { id: 'jetlagFact', ch: 3, type: 'beat', text: 'Jet lag fact', render: w => renderJetlagFact(w) },   // draft
+  // straight after the ideal window, when the work and ideal bedtimes sit 1.5 hours or more apart; leads into the jet lag fact (20.11.26)
+  { id: 'gapReason', ch: 3, type: 'single', text: 'Is there a reason for the gap?', show: () => { const g = bedGap(); return g != null && Math.abs(g) >= 1.5; },
+    opts: ['Work or study', 'Other people', 'A choice I make', 'Not sure'] },   // no “Prefer not to say”: the question can be skipped
+  // skipped when neither sleep window was answered; its own versions for one window only, and for two that match (20.11.26)
+  { id: 'jetlagFact', ch: 3, type: 'beat', text: 'Jet lag fact', show: () => jlCase() !== 'none', render: w => renderJetlagFact(w) },   // draft
   { id: 'alarm', ch: 3, type: 'single', text: 'Currently, are you using an **alarm**?', opts: ['Work days only', 'Weekends only', 'Both on weekends and work days', 'Not at the moment'] },
   { id: 'intoxFact', ch: 3, type: 'beat', text: 'Mild intoxication fact', render: w => renderIntoxFact(w) },   // draft
   { id: 'toggleCard', ch: 3, type: 'beat', text: 'Toggle card', render: w => renderToggleCard(w) },          // placeholder
@@ -80,11 +86,8 @@ const Q = [
   { id: 'found', ch: 7, type: 'beat', text: 'Found something', show: () => hasHistory(), render: renderFound },
   { id: 'standout', ch: 7, type: 'beat', text: 'Transition', render: renderStandout },
   { id: 'reveal', ch: 7, type: 'beat', text: 'Reveal', render: w => renderReveal(w) },
-  // only after the gap reveal
-  { id: 'gapReason', ch: 7, type: 'single', text: 'Is there a **reason** for the **gap**?', show: A => A.revealCase === 'gap',
-    opts: ['Work or study', 'Other people', 'A choice I make', 'Not sure'] },   // no “Prefer not to say”: the question can be skipped
   { id: 'timeline', ch: 7, type: 'beat', brand: true, tall: true, text: 'Your journey', render: w => renderTimeline(w) },   // static by default; draw-in is a design alternative
-  { id: 'allset', ch: 7, type: 'beat', end: true, text: 'All set', render: w => w.appendChild(el('p', 'main', COPY.closing)) },   // footer: Enter Pheno / Edit answers
+  { id: 'allset', ch: 7, type: 'beat', end: true, text: 'All set', render: w => renderClosing(w) },   // footer: Enter Pheno / Edit answers
 ];
 // chapter 0 has no separate card: it opens on the first question's card
 for (let n = CH.length - 1; n >= 1; n--) { const i = Q.findIndex(q => q.ch === n && q.type !== 'intro' && q.type !== 'theme'); Q.splice(i, 0, { id: 'chapter' + n, ch: n, type: 'chapter', text: CH[n].name }); }
@@ -111,11 +114,13 @@ const TIER_LINE = {
   high: 'You’ve been tracking your sleep for a long time, that’s giving us a lot to work with, but we’re going to use it for extra context to your current sleep instead of replacing it.',
 };
 // reveal: four variants (middle, extreme, gap, fallback); extreme has a night owl and an early bird side. Rough draft, flagged.
+// 21.11.26: the backbone's wording (07.10.26): mirror their own read back as a hypothesis, then say we'll check it. Night owl is the backbone line;
+// early bird, middle and gap follow the same shape (drafts)
 const LEAN = {
-  late: 'From your answers, we’re leaning towards you being a night owl.',
-  early: 'From your answers, we’re leaning towards you being [an early bird].',
-  middle: 'From your answers, we’re leaning towards you sitting somewhere in the middle, between a night owl and a morning person.',
-  gap: '[From your answers, there’s a gap between when you go to bed and when you’d choose to.]',
+  late: 'You mentioned that you think you’re a **night owl**. Most apps would put you in that category right away. Not us. We want to **actually verify it**, using your watch data and everything else you tell us.',
+  early: 'You mentioned that you think you’re an **early bird**. Most apps would put you in that category right away. Not us. We want to **actually verify it**, using your watch data and everything else you tell us.',
+  middle: 'You mentioned that you sit **somewhere in the middle**, between a night owl and an early bird. Most apps would leave it there. Not us. We want to **actually verify it**, using your watch data and everything else you tell us.',
+  gap: 'You mentioned that your work days and your ideal sleep **don’t line up**. Most apps would take that at face value. Not us. We want to **see how big the gap really is**, using your watch data and everything else you tell us.',
   fallback: 'We don’t have a first guess about you yet. Your nights will start to show us.',
 };
 // prototype rule, not the real algorithm: a skipped slider, a timezone change or a recent event -> fallback;
@@ -132,13 +137,20 @@ function leanOf() {
 const COPY = {
   ageSay: ['So you’re', 'years old.'],   // the age card: the number sits large between the two lines
   ageTitle: 'Your body clock moves with age',   // draft title (17.11.26)
-  ageFact: 'Your body clock runs **latest in your early twenties**. After that, it **drifts earlier** a little every year.',   // draft rewrite (19.11.26)
-  jetlagFact: 'When you go to bed and when your body wants to go to bed don’t match, the effect is very similar to jet lag.',
-  intoxFact: 'Right after waking from deep sleep, your thinking can be **as foggy as being slightly drunk**. It clears within minutes, so **hold off on big decisions** until it does.',   // draft reword (17.11.26)
+  ageFact: 'Early twenties is when we naturally sleep **the latest**. After that, your body clock slowly **shifts earlier**.',   // Auri’s wording (20.11.26)
+  jetlagFact: 'When you go to bed and when your body wants to go to bed don’t match, the effect is very similar to jet lag.',   // before (19.11.26)
+  // jet lag card (20.11.26): Auri’s title and line; the one-window and matching versions are drafts
+  jl: { title: 'Ideal vs. work-day sleep window', body: 'The gap between the two has a similar effect on your body to jet lag.',
+        match: ['[They match]', '[Your work days already let you sleep when your body wants to. When the two pull apart, it affects your body a lot like jet lag.]'],
+        oneWork: ['Your work-day sleep window', '[When the hours you keep pull away from the hours your body wants, it affects your body a lot like jet lag.]'],
+        oneIdeal: ['Your ideal sleep window', '[When the hours you keep pull away from the hours your body wants, it affects your body a lot like jet lag.]'] },
+  intoxFact: 'Right after waking from deep sleep, your thinking can be **as foggy as being slightly drunk**.\nSave big decisions for later.',   // Auri’s wording (20.11.26); \n: the second sentence on its own line
   privacy: 'Everything you tell us stays yours. You can see your answers, change them, or delete them whenever you like.',
   // the journey ruler (from Auri's reference): [day, milestone, strong line]; day numbers are placeholders until Sleep Science confirms them
-  timeline: [[33, 'First colour appears', true], [26, 'More sleep patterns identified', false], [21, 'First adjective appears', true], [11, 'First trend detected', false], [7, 'Sleep regularity established', true]],
-  closing: 'All set up. Tomorrow morning, we’ll show you around the app, and you’ll do your first morning check-in.',
+  // [day, milestone, strong line, the marker shown on the left] (20.11.26: Auri’s five chapters). The milestone lines kept their order; which goes with which is to confirm
+  timeline: [[42, 'First colour appears', true, '~ 6 weeks'], [28, 'More sleep patterns identified', false, '~ 4 weeks'], [14, 'First adjective appears', true, '~ 2 weeks'], [7, 'First trend detected', false, '~ 1 week'], [0, 'Sleep regularity established', true, 'Day 0']],
+  timelineNote: 'These are estimates. Timing varies from person to person, and it depends on what you tell us and which device you use.',
+  closing: ['All set up.', 'Tomorrow morning, we’ll show you around the app, and you’ll do your first morning check-in.'],   // one sentence per line (20.11.26)
 };
 // review status per card, used until a saved status exists: approved unless listed. [status, admin check note]
 // reply to "Why are you here?": [headline, body]; the headline echoes their reason, the body says what Pheno does about it (draft copy, 19.11.26)
@@ -155,7 +167,7 @@ const INTENT_REPLY = {
 const INTENT_NEXT = 'Next, a few questions about you. [About five minutes,] and you can skip anything you’d rather not share.';
 
 const CARD_SEED = {
-  intentReply: ['review', 'Suggestion, behind the “Reply to why you’re here” design alternative. Answers their choice, ties it to what Pheno is, and says what comes next. All copy is a freestyle draft.'],
+  intentReply: ['review', 'In the flow after “Why are you here?” (20.11.26). Answers their choice, ties it to what Pheno is, and says what comes next. All copy is a freestyle draft.'],
   found: ['review', 'Still full of brackets and mock data: needs real copy and the real data behind the charts.'],
   reveal: ['review', 'Rough sketch of the four variants; a separate design task. The case rules are a prototype stand-in.'],
   allset: ['review', 'Now ends with Enter Pheno or Edit answers; Edit answers opens the overview of every answer.'],
@@ -166,6 +178,7 @@ const CARD_SEED = {
   chapter3: ['review', 'New description: “Let’s see how you actually sleep at the moment.”'],
   chapter4: ['review', 'New description: “Let’s see how your sleep and your personal life interact.”'],
   chrono: ['review', 'New helper line under the question.'],
+  schedDays: ['review', 'New (20.11.26): the work days and “My schedule varies week to week”, split off the work sleep window. Draft wording.'],
   sched: ['review', 'Tap bedtime or wake-up to set it with the scroll wheel.'],
   ideal: ['approved', 'Tap bedtime or wake-up to set it with the scroll wheel, same as the work window.'],
   diagList: ['review', 'Search at the top, then the three most common. The longer list is a draft for Sleep Science to confirm.'],
@@ -193,13 +206,47 @@ function renderWatchBeat(w) {
   };
   requestAnimationFrame(tick);
 }
-// after date of birth: nights since birth, exact to today's date; "sleeper", "you" and "nights" in bold
-function renderNights(w) {
+// after date of birth: nights since birth, exact to today's date. 20.11.26: "you" no longer bold; "nights" under or beside the number (Design alternatives)
+function nightsCount() {
   const d = A.dob || { d: 15, m: 5, y: 1995 }, now = new Date();
-  const n = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d.y, d.m, d.d)) / 864e5);   // whole days, safe across clock changes
+  return Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d.y, d.m, d.d)) / 864e5);   // whole days, safe across clock changes
+}
+function renderNights(w) {
+  const n = nightsCount(), beside = typeof ALT === 'object' && ALT.nightsUnit === 'beside';
+  w.classList.add('agecard', 'nightscard', 'v2'); if (beside) w.classList.add('beside');
+  const end = el('p', 'ag-l ag-end'); end.innerHTML = rich('Let’s find out what kind of **sleeper** they’ve made you.');
+  const num = el('p', 'ag-n' + (n >= 10000 ? ' long' : ''), n.toLocaleString('en-GB')), unit = el('p', 'ag-u', 'nights');
+  if (beside) { const row = el('div', 'ag-row'); row.append(num, unit); w.append(el('p', 'ag-l', 'You’ve slept'), row, end); }
+  else w.append(el('p', 'ag-l', 'You’ve slept'), num, unit, end);
+  countUp(num, n, end);
+}
+// 21.11.26: the number counts up from 0 (fast, then easing in), and the closing line comes in once it lands
+function countUp(num, n, after) {
+  const fmt = v => v.toLocaleString('en-GB'), still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (still || countUp.off) return;
+  num.classList.add('counting'); if (after) after.classList.add('wait');
+  num.textContent = fmt(0);
+  const DELAY = 350, DUR = 1900, t0 = performance.now() + DELAY;
+  const tick = now => {
+    if (!num.isConnected) return;
+    const k = Math.min(1, Math.max(0, (now - t0) / DUR)), e = 1 - Math.pow(1 - k, 4);       // quartic ease-out: races, then settles
+    num.textContent = fmt(Math.round(n * e));
+    if (k < 1) requestAnimationFrame(tick);
+    else { num.classList.remove('counting'); num.classList.add('landed'); if (after) setTimeout(() => after.classList.add('in'), 180); }
+  };
+  requestAnimationFrame(tick);
+}
+// before (20.11.26): "you" in bold too
+function renderNightsV2(w) {
+  const n = nightsCount();
   w.classList.add('agecard', 'nightscard', 'v2');
   const end = el('p', 'ag-l ag-end'); end.innerHTML = rich('Let’s find out what kind of **sleeper** they’ve made **you**.');
   w.append(el('p', 'ag-l', 'You’ve slept'), el('p', 'ag-n' + (n >= 10000 ? ' long' : ''), n.toLocaleString('en-GB')), el('p', 'ag-u', 'nights'), end);
+}
+// the closing card: one sentence per line (an older single string still works, for Before)
+function renderClosing(w) {
+  const lines = Array.isArray(COPY.closing) ? COPY.closing : [COPY.closing];
+  lines.forEach(t => w.appendChild(el('p', 'main' + (lines.length > 1 ? ' cl-line' : ''), t)));
 }
 // before (17.11.26): rounded to the nearest hundred, “about”, no bold
 function renderNightsV1(w) {
@@ -276,6 +323,7 @@ const WHY = {
   hormone: 'Each status changes sleep in real, documented ways — without this, a genuine shift in your sleep would just look unexplained in your data, rather than something we understand. For some, this also means telling us more precisely what’s going on.',
   diag: 'Some sleep conditions can look identical to ordinary disrupted sleep in the data alone — knowing this helps us tell a one-off from your actual baseline.',
   chrono: 'This one’s partly curiosity, partly useful — it tells us how well you already know your own rhythm. Long term, we want you to better understand your sleep, not just see it measured.',
+  schedDays: '[Knowing your work days lets us read those nights against your schedule, and your free days against what your body does on its own.]',   // draft
   sched: 'This helps us tell the difference between ‘I slept badly’ and ‘this was as much as I was able to sleep, given my schedule.’',
   ideal: 'Not everyone has a clear sleep goal — but if yours matches what your body actually needs, that’s one of the most useful things you can tell us.',
   alarm: 'Alarms force your body out of sleep. Since we’re trying to understand how your body actually wants to sleep, we need to know if today was constrained by one, or not.',

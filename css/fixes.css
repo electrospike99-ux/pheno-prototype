@@ -240,3 +240,64 @@ body.clean .card.before-view::after{ display:none; }
 .screen.dark .dl3-bar{ background:#22242B; } .screen.dark .dl3-h{ box-shadow:0 2px 8px rgba(0,0,0,.5), 0 0 0 3px #15161B; }
 .screen.dark .dl-change{ color:color-mix(in srgb, var(--c) 60%, #fff); }
 .screen.dark .dl-ico.bed{ background:#3A3F8F; }
+
+/* ---------- 20.11.26 ---------- */
+/* nights card: "nights" beside the number (Design alternatives) */
+.nightscard.beside .ag-row{ display:flex; align-items:baseline; justify-content:center; gap:10px; margin:10px 0 18px; }
+.nightscard.beside .ag-row .ag-n{ margin:0; font-size:66px; }
+.nightscard.beside .ag-row .ag-n.long{ font-size:60px; }
+.nightscard.beside .ag-row .ag-u{ margin:0; font-size:26px; }
+/* jet lag card: its title, and the matching version */
+.jl-title{ margin:0 0 2px; font-family:var(--serif); font-size:21px; line-height:1.2; color:#0E0F12; text-wrap:balance; }
+.screen.dark .jl-title{ color:#F2F2F5; }
+.jl-key i:first-child{ margin-left:0; }
+.jl-n.jl-same{ font-size:30px; }
+.beatwrap.jl2 .main{ font-size:20px; }
+/* closing card: one sentence per line */
+.beatwrap .main.cl-line + .main.cl-line{ margin-top:12px; }
+/* the journey: the estimate note under the ruler */
+.journey .jnote{ margin:0; padding:0 18px 4px; font-size:11.5px; line-height:1.4; font-style:italic; color:#8A8D98; text-wrap:pretty; }
+.screen.dark .journey .jnote{ color:#8F92A0; }
+.ruler .ms .day{ letter-spacing:.12em; }
+/* Edit text */
+.txrow{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.txrow .txb{ min-width:38px; font-family:Georgia, serif; }
+.txrow .pbtn.here{ background:var(--ink, #0E0F12); color:#fff; }
+.txmsg{ font-size:12px; color:#8A8D98; }
+.screen.txedit .tx-ed{ outline:1.5px dashed color-mix(in srgb, #7B5CE6 55%, transparent); outline-offset:3px; border-radius:4px; cursor:text; -webkit-user-select:text; user-select:text; }
+.screen.txedit .tx-ed:focus{ outline:2px solid #7B5CE6; background:color-mix(in srgb, #7B5CE6 7%, transparent); }
+.screen.txedit .tx-ed.tx-changed{ outline-color:color-mix(in srgb, #E8A33D 80%, transparent); }
+/* 20.11.26 (2) */
+/* work days card */
+.wdays{ width:100%; display:flex; flex-direction:column; align-items:center; gap:16px; padding-top:6px; }
+.wd-row{ width:100%; display:flex; justify-content:space-between; gap:4px; }
+.wd{ appearance:none; flex:none; width:40px; height:40px; border-radius:50%; border:1.5px solid rgba(16,17,20,.12); background:#F4F5F7; color:#15161A; font:600 14px var(--sans); cursor:pointer; padding:0; transition:background .2s ease, color .2s ease, border-color .2s ease; }
+.wd[aria-pressed="true"]{ background:var(--c); border-color:var(--c); color:#fff; }
+.wd:focus-visible{ outline:2px solid var(--c); outline-offset:2px; }
+.wd-sum{ margin:0; font-size:14.5px; color:#5C6070; }
+.screen.dark .wd{ background:#1C1E24; border-color:rgba(255,255,255,.12); color:#ECEDF1; }
+.screen.dark .wd[aria-pressed="true"]{ background:var(--c); border-color:var(--c); color:#fff; }
+.screen.dark .wd-sum{ color:#A7A9B4; }
+.screen.polish .wd{ transition:background-color .3s ease, border-color .25s ease, color .3s ease, transform .45s var(--bounce); }
+.screen.polish .wd:active{ transform:scale(.88); transition:background-color .3s ease, transform .11s ease-out; }
+/* jet lag: the title small, just above the value; "gap" after it */
+.jl-title.sm{ margin:6px 0 -4px; font-family:var(--sans); font-size:12.5px; font-weight:600; letter-spacing:.02em; color:#5C6070; }
+.screen.dark .jl-title.sm{ color:#A7A9B4; }
+.jl-n .jl-gapw{ font-size:22px; color:color-mix(in srgb, var(--c) 72%, #000); }
+.screen.dark .jl-n .jl-gapw{ color:color-mix(in srgb, var(--c) 65%, #fff); }
+/* intoxication: blurrier, and it wanders (moved from code, so no sway animation here) */
+.drunkorb.v3{ animation:none; will-change:transform; }
+.drunkorb.v3 canvas{ filter:blur(9px) saturate(1.1); }
+.beatwrap .main.ix-next{ margin-top:10px; }
+/* 21.11.26 */
+/* nights: the number counts up, then the closing line rises in */
+.nightscard .ag-n{ font-variant-numeric:tabular-nums lining-nums; }
+.nightscard .ag-n.landed{ animation:nights-land .5s var(--bounce, ease-out); }
+@keyframes nights-land{ 0%{ transform:scale(1.04); } 100%{ transform:none; } }
+.nightscard .ag-end.wait{ opacity:0 !important; transform:translate3d(0,12px,0); filter:blur(4px); animation:none !important; }
+.nightscard .ag-end.wait.in{ opacity:1 !important; transform:none; filter:none; transition:opacity .7s ease, transform .8s var(--ease-out, ease-out), filter .7s ease; }
+/* work days: with "varies" on, the days blur and can't be tapped */
+.wdays .wd-row{ transition:filter .35s ease, opacity .35s ease; }
+.wdays.off .wd-row{ filter:blur(2.5px); opacity:.4; pointer-events:none; }
+.wd:disabled{ cursor:default; }
+.wdays.off .wd-sum{ font-style:italic; }

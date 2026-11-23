@@ -17,16 +17,20 @@ function renderTimelineV1(w) {
   w.appendChild(ol);
 }
 
+// 20.11.26: each entry is the version just before the latest change
 const BEFORE = {
-  ageFact:    { apply: () => setFor(COPY, 'ageFact', 'On average, people drift towards earlier mornings as they get older. The shift starts around the early twenties.') },
-  allset:     { apply: () => setFor(ALT, 'closingCol', 'grey') },
+  reveal:     { apply: () => { const keep = Object.assign({}, LEAN); Object.assign(LEAN, LEAN_V1); return () => Object.assign(LEAN, keep); } },
+  schedDays:  { apply: () => setFor(qOf('schedDays'), 'noBlur', true) },
+  ageFact:    { apply: () => setFor(COPY, 'ageFact', 'Your body clock runs **latest in your early twenties**. After that, it **drifts earlier** a little every year.') },
+  allset:     { apply: () => setFor(COPY, 'closing', 'All set up. Tomorrow morning, we’ll show you around the app, and you’ll do your first morning check-in.') },
   chrono:     { apply: () => setFor(qOf('chrono'), 'sub', 'How early or late your body wants to fall asleep and wake up.') },
   found:      { apply: () => setFor(qOf('found'), 'render', renderFoundV1) },
-  gapReason:  { apply: () => both(setFor(ALT, 'closingCol', 'grey'), setFor(qOf('gapReason'), 'opts', ['Work or study', 'Other people', 'A choice I make', 'Not sure', 'Prefer not to say'])) },
-  intoxFact:  { apply: () => setFor(qOf('intoxFact'), 'render', renderIntoxFactV1) },
-  jetlagFact: { apply: () => setFor(qOf('jetlagFact'), 'render', renderJetlagFactV1) },
-  nights:     { apply: () => setFor(qOf('nights'), 'render', renderNightsV1) },
-  timeline:   { apply: () => both(setFor(qOf('timeline'), 'render', renderTimelineV1), setFor(qOf('timeline'), 'tall', false)) },
+  intoxFact:  { apply: () => both(setFor(qOf('intoxFact'), 'render', renderIntoxFactV2), setFor(DRUNK, 'blur', 1.35)) },
+  jetlagFact: { apply: () => setFor(qOf('jetlagFact'), 'render', renderJetlagFactV3) },
+  gapReason:  { apply: () => setFor(qOf('gapReason'), 'text', 'Is there a **reason** for the **gap**?') },
+  sched:      { apply: () => both(setFor(qOf('sched'), 'text', 'What is your **work sleep window**?'), setFor(qOf('sched'), 'sub', 'When you typically go to bed and wake up on those days.')) },
+  nights:     { apply: () => setFor(countUp, 'off', true) },
+  timeline:   { apply: () => both(setFor(COPY, 'timeline', [[33, 'First colour appears', true], [26, 'More sleep patterns identified', false], [21, 'First adjective appears', true], [11, 'First trend detected', false], [7, 'Sleep regularity established', true]]), setFor(COPY, 'timelineNote', null)) },
 };
 
 function goToCard(q) {

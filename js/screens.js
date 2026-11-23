@@ -6,7 +6,7 @@ const screen = $('#screen'), card = $('#card'), fade = $('#fade'), zone = $('#zo
 const visible = i => !Q[i].show || Q[i].show(A);
 function nextIndex(from) { for (let i = from + 1; i < Q.length; i++) if (visible(i)) return i; return Q.length; }
 // in edit mode only questions count: facts, chapter cards and the closing beats are skipped
-const EDITABLE = new Set(['theme', 'single', 'multi', 'scale', 'continuous', 'date', 'wheel', 'dial', 'text', 'permission']);
+const EDITABLE = new Set(['theme', 'single', 'multi', 'scale', 'continuous', 'date', 'wheel', 'dial', 'days', 'text', 'permission']);
 const editable = i => EDITABLE.has(Q[i].type) && visible(i);
 function nextEditable(from) { for (let i = from + 1; i < Q.length; i++) if (editable(i)) return i; return Q.length; }
 
@@ -56,7 +56,7 @@ function build() {
   $('#qtext').innerHTML = rich(q.text);
   const sub = $('#qsub'); sub.hidden = !subOf(q); sub.textContent = subOf(q) || '';
   const pre = $('#qpre'); pre.hidden = !q.pre; pre.textContent = q.pre || '';
-  ({ beat: buildBeat, theme: buildTheme, intro: buildIntro, chapter: buildChapter,  single: buildSingle, multi: buildMulti, scale: buildScale, continuous: buildContinuous, date: buildDate, wheel: buildWheel, dial: buildDial, text: buildText, permission: buildPermission })[q.type](q);
+  ({ beat: buildBeat, theme: buildTheme, intro: buildIntro, chapter: buildChapter,  single: buildSingle, multi: buildMulti, scale: buildScale, continuous: buildContinuous, date: buildDate, wheel: buildWheel, dial: buildDial, days: buildDays, text: buildText, permission: buildPermission })[q.type](q);
   fitQuestion();
   if (q.ch === 0 && q.type !== 'intro' && q.type !== 'theme') $('#eyebrow').textContent = 'Chapter 0';   // the chapter name is the question itself
   card.classList.remove('opening', 'unfolding');
@@ -181,18 +181,19 @@ function optButton(label, pressed) {
 }
 function buildSingle(q) {
   const list = el('div', 'opts'); zone.appendChild(list);
-  // most single choices move on when tapped; a 'confirm' question shows Continue once something is chosen
+  // 20.11.26 (peer review: don't rush, leave time to reread): a tap picks the answer and Continue moves on.
+  // Only an 'instant' question (sex) still moves on by itself when tapped.
   let btn = null;
   q.opts.forEach(o => {
     const b = optButton(o, A[q.id] === o); list.appendChild(b);
     b.addEventListener('click', () => {
       list.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
       answered(o); glow();
-      if (q.confirm) { btn.hidden = false; btn.disabled = false; }
-      else setTimeout(() => advance(), 480);
+      if (q.instant) setTimeout(() => advance(), 480);
+      else { btn.hidden = false; btn.disabled = false; }
     });
   });
-  if (q.confirm) { btn = footer({ cont: true, skip: !q.required, onCont: () => advance() }); btn.hidden = !A[q.id]; }
+  if (!q.instant) { btn = footer({ cont: true, skip: !q.required, onCont: () => advance() }); btn.disabled = !q.opts.includes(A[q.id]); }   // there from the start, greyed until something is picked
   else if (!q.required) footer({ skip: true });
 }
 
@@ -518,6 +519,40 @@ function buildDial(q) {
     answered(chosenExtra || v); glow(); advance(); } });
   paint();
   if (window.__dial) window.__dial.current = { s, view, paint };
+}
+
+/* ---------- work days (20.11.26): its own card before the work sleep window; the days, and "My schedule varies week to week" ---------- */
+const DAY_LONG = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+function daysSummary(set) {
+  const d = [...set].sort();
+  if (!d.length) return 'No days picked';
+  if (d.length === 7) return 'Every day';
+  const run = d.every((x, i) => !i || x === d[i - 1] + 1);
+  return run && d.length > 2 ? DAY_LONG[d[0]] + ' to ' + DAY_LONG[d[d.length - 1]] : d.map(x => DAY_LONG[x].slice(0, 3)).join(', ');
+}
+function buildDays(q) {
+  const prev = Array.isArray(A[q.id]) ? A[q.id] : null;
+  const days = new Set(prev || [0, 1, 2, 3, 4]);
+  const wrap = el('div', 'wdays'), row = el('div', 'wd-row'), sum = el('p', 'wd-sum');
+  row.setAttribute('role', 'group'); row.setAttribute('aria-label', 'Work or study days');
+  const key = q.toggleKey || q.id + 'Varies';
+  // 21.11.26: with "varies" on, the days blur and can't be tapped
+  const blurs = !q.noBlur;                                                        // read now: a Before view turns it off only while it builds
+  const paint = () => { const off = blurs && !!A[key]; wrap.classList.toggle('off', off); row.querySelectorAll('.wd').forEach(b => { b.disabled = off; });
+    sum.textContent = off ? 'Your days change from week to week' : daysSummary(days); if (btn) btn.disabled = !off && !days.size; };
+  DAYS.forEach((d, i) => { const b = el('button', 'wd', d); b.type = 'button'; b.setAttribute('aria-label', DAY_NAMES[i]); b.setAttribute('aria-pressed', String(days.has(i)));
+    b.addEventListener('click', () => { days.has(i) ? days.delete(i) : days.add(i); b.setAttribute('aria-pressed', String(days.has(i))); if (days.has(i)) glow(); paint(); }); row.appendChild(b); });
+  wrap.append(row, sum); zone.appendChild(wrap);
+  if (q.toggle) {
+    const r = el('div', 'togrow'); const t = el('button', 'ios'); t.type = 'button'; t.setAttribute('role', 'switch'); t.setAttribute('aria-label', q.toggle);
+    t.setAttribute('aria-checked', String(!!A[key]));
+    t.addEventListener('click', () => { const v = t.getAttribute('aria-checked') !== 'true'; t.setAttribute('aria-checked', String(v)); A[key] = v; logAnswers(); paint(); });
+    r.append(el('span', null, q.toggle), t); foot.appendChild(r);
+  }
+  const btn = footer({ cont: true, skip: true, onCont: () => { answered(A[key] ? 'Varies week to week' : [...days].sort((a, b) => a - b).map(i => DAY_LONG[i].slice(0, 3))); glow(); advance(); } });
+  // stored as day names (Mon, Tue…); read back into the set when coming back
+  if (prev) { days.clear(); prev.forEach(x => { const i = typeof x === 'number' ? x : DAY_LONG.findIndex(n => n.startsWith(x)); if (i >= 0) days.add(i); }); row.querySelectorAll('.wd').forEach((b, i) => b.setAttribute('aria-pressed', String(days.has(i)))); }
+  paint();
 }
 
 /* ---------- overlays on the card: the time wheel and the long list. Both close back to the question. ---------- */

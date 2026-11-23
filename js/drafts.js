@@ -55,8 +55,53 @@ function myWindows() {
   return s && i ? { s, i, example: false } : { s: { bed: 23, dur: 7.5 }, i: { bed: 0.75, dur: 8.5 }, example: true };
 }
 
-/* ---------- jet lag fact: the two windows as arcs on one half clock, and how far apart they sit ---------- */
+/* ---------- jet lag fact: the two windows as arcs on one half clock, and how far apart they sit ----------
+   20.11.26: Auri's title and line; skipped with neither window answered; its own versions for one window only and for two that match */
+const jlMid = x => x.bed + x.dur / 2;
+const jlGap = (a, b) => Math.abs(((jlMid(b) - jlMid(a)) % 24 + 36) % 24 - 12);
+function jlCase() {
+  const pv = typeof ALT === 'object' ? ALT.jlPreview : 'auto';
+  if (pv && pv !== 'auto') return pv;
+  const s = savedWin(A.sched), i = savedWin(A.ideal);
+  if (!s && !i) return 'none';
+  if (!s || !i) return 'one';
+  return Math.round(jlGap(s, i) * 4) === 0 ? 'match' : 'gap';                    // within 7 minutes counts as the same
+}
+const jlText = h => { const [hh, mm] = hm(Math.round(h * 4) / 4); return (hh ? hh + ' hr' : '') + (mm ? (hh ? ' ' : '') + mm + ' min' : '') || '0 min'; };
+let jlOld = false;
+function renderJetlagFactV3(w) { jlOld = true; try { renderJetlagFact(w); } finally { jlOld = false; } }
 function renderJetlagFact(w) {
+  w.classList.add('fact', 'jetlag', 'jl2');
+  const s0 = savedWin(A.sched), i0 = savedWin(A.ideal), ex = { s: { bed: 23, dur: 7.5 }, i: { bed: 0.75, dur: 8.5 } };
+  let k = jlCase(); if (k === 'none') k = 'gap';                                  // opened from the bench with nothing answered: the example
+  const head = t => { const h = el('p', 'jl-title'); h.innerHTML = rich(t); return h; };
+  const body = t => { const p = el('p', 'main'); p.innerHTML = rich(t); return p; };
+  const key = (work, ideal) => { const l = el('div', 'jl-key'); if (work) l.append(el('i', 'k1'), 'Work days'); if (ideal) l.append(el('i', 'k2'), 'Ideal'); return l; };
+  if (k === 'one') {
+    const work = s0 || (!i0 && ALT.jlPreview === 'one'), win = s0 || i0 || ex.s;
+    const [t, b] = work ? COPY.jl.oneWork : COPY.jl.oneIdeal;
+    const h = head(t); if (!jlOld) h.classList.add('sm');
+    if (jlOld) w.append(h, halfClockPair(work ? win : null, work ? null : win), key(work, !work), body(b));
+    else w.append(halfClockPair(work ? win : null, work ? null : win), key(work, !work), h, body(b));
+    return;
+  }
+  let s = s0, i = i0, example = !(s0 && i0);
+  if (example) { s = ex.s; i = k === 'match' ? ex.s : ex.i; }
+  const small = t => { const h = head(t); h.classList.add('sm'); return h; };
+  if (jlOld) {                                                                   // the layout from earlier on 20.11.26: title on top, the value on its own
+    if (k === 'match') w.append(head(COPY.jl.title), halfClockPair(s, i), key(true, true), el('p', 'jl-n jl-same', COPY.jl.match[0]), body(COPY.jl.match[1]));
+    else w.append(head(COPY.jl.title), halfClockPair(s, i), key(true, true), el('p', 'jl-n', example ? '[' + jlText(jlGap(s, i)) + ']' : jlText(jlGap(s, i))), body(COPY.jl.body));
+  } else
+  if (k === 'match') { w.append(halfClockPair(s, i), key(true, true), small(COPY.jl.title), el('p', 'jl-n jl-same', COPY.jl.match[0]), body(COPY.jl.match[1])); }
+  else {
+    const g = jlText(jlGap(s, i)), big = el('p', 'jl-n');
+    big.append(example ? '[' + g + ']' : g, el('span', 'jl-gapw', ' gap'));
+    w.append(halfClockPair(s, i), key(true, true), small(COPY.jl.title), big, body(COPY.jl.body));
+  }
+  if (example) w.appendChild(el('em', 'jl-ex', '[example: answer both sleep window questions to see your own]'));
+}
+// before (20.11.26): legend "Work days / Your body", the gap as "X apart", one line of copy
+function renderJetlagFactV2(w) {
   w.classList.add('fact', 'jetlag');
   const m = myWindows(), mid = x => x.bed + x.dur / 2;
   const gap = Math.abs(((mid(m.i) - mid(m.s)) % 24 + 36) % 24 - 12), [hh, mm] = hm(Math.round(gap * 4) / 4);
@@ -69,15 +114,15 @@ function renderJetlagFact(w) {
 function halfClockPair(a, b) {
   const mk = svgEl, W = 260, cx = 130, cy = 120, R1 = 102, R2 = 76, HALF = 6;
   const mid = x => x.bed + x.dur / 2, wr = d => ((d % 24) + 36) % 24 - 12;
-  const vm = mid(a) + wr(mid(b) - mid(a)) / 2;                                   // the half clock centres on the middle of both windows
+  const one = a || b; a = a || null; b = b || null;
+  const vm = a && b ? mid(a) + wr(mid(b) - mid(a)) / 2 : mid(one);              // the half clock centres on the middle of both windows (or the one there is)
   const pt = (r, rad) => { const t = r / HALF * Math.PI / 2; return [cx + rad * Math.sin(t), cy - rad * Math.cos(t)]; };
   const arc = (r0, r1, rad) => { r0 = Math.max(-HALF, r0); r1 = Math.min(HALF, r1); if (r1 <= r0) return '';
     const [x0, y0] = pt(r0, rad), [x1, y1] = pt(r1, rad); return 'M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' A' + rad + ' ' + rad + ' 0 0 1 ' + x1.toFixed(1) + ' ' + y1.toFixed(1); };
   const svg = mk('svg', { viewBox: '0 0 ' + W + ' ' + (cy + 8), class: 'jlclock', role: 'img', 'aria-label': 'Your work-day sleep window and the window your body wants, on one clock' });
   [R1, R2].forEach(R => svg.appendChild(mk('path', { d: arc(-HALF, HALF, R), class: 'jl-track' })));
-  const ra = wr(a.bed - vm), rb = wr(b.bed - vm);
-  svg.appendChild(mk('path', { d: arc(ra, ra + a.dur, R1), class: 'jl-a' }));
-  svg.appendChild(mk('path', { d: arc(rb, rb + b.dur, R2), class: 'jl-b' }));
+  if (a) { const ra = wr(a.bed - vm); svg.appendChild(mk('path', { d: arc(ra, ra + a.dur, R1), class: 'jl-a' })); }
+  if (b) { const rb = wr(b.bed - vm); svg.appendChild(mk('path', { d: arc(rb, rb + b.dur, R2), class: 'jl-b' })); }
   for (let h = 0; h < 24; h += 3) {                                                   // hour labels inside the inner ring
     const r = wr(h - vm); if (Math.abs(r) > HALF - 0.4) continue;
     const [x, y] = pt(r, R2 - 30), major = h % 6 === 0;
@@ -93,23 +138,41 @@ function renderJetlagFactV1(w) {
 }
 
 /* ---------- mild intoxication fact: the original Pheno orb (the home orb's shader), turned fuzzier and grainier, swaying ---------- */
-const DRUNK = { blur: 1.35, grain: 0.4 };           // the home orb uses blur 1 and grain 0.1; much past 1.6 the colours break
+const DRUNK = { blur: 1.55, grain: 0.4 };          // 20.11.26: up from 1.35, just under where the colours break           // the home orb uses blur 1 and grain 0.1; much past 1.6 the colours break
 let drunkGL = null;
+const intoxLines = (w, text) => text.split('\n').forEach((t, i) => { const p = el('p', 'main' + (i ? ' ix-next' : '')); p.innerHTML = rich(t); w.appendChild(p); });
 function renderIntoxFact(w) {
   if (!drunkGL) { const cv = document.createElement('canvas'); let r = null; try { r = makeOrbLab(cv); } catch (e) { r = null; } drunkGL = r ? { cv, r } : 'none'; }
   if (drunkGL === 'none') { renderIntoxFactV1(w); return; }                      // no WebGL: the soft CSS version
   w.classList.add('fact');
-  const wrap = el('div', 'drunkorb'); wrap.setAttribute('aria-hidden', 'true'); wrap.appendChild(drunkGL.cv);
-  const p = el('p', 'main'); p.innerHTML = rich(COPY.intoxFact);
-  w.append(wrap, p);
-  const { cv, r } = drunkGL;
+  // 20.11.26: blurrier (the shader's own blur, plus a soft blur on top so the colours don't break) and it wanders a lot: drifts, wobbles, breathes
+  const wrap = el('div', 'drunkorb v3'); wrap.setAttribute('aria-hidden', 'true'); wrap.appendChild(drunkGL.cv);
+  w.appendChild(wrap); intoxLines(w, COPY.intoxFact);
+  const { cv, r } = drunkGL, still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const loop = now => {
     if (!cv.isConnected) return;
+    const t = now / 1000;
     r.size(); const keep = [ORBLAB.blur, ORBLAB.grain]; ORBLAB.blur = DRUNK.blur; ORBLAB.grain = DRUNK.grain;
-    r.draw(now / 1000, cv.width / 2, cv.height / 2, cv.width * 0.33, 0);
+    r.draw(t, cv.width / 2, cv.height / 2, cv.width * 0.33, 0);
     [ORBLAB.blur, ORBLAB.grain] = keep;
+    if (!still) {                                                                  // a slow, uneven, drunk wander
+      const x = 26 * Math.sin(t * 0.9) + 12 * Math.sin(t * 2.3 + 1), y = 14 * Math.sin(t * 1.3 + 2) + 8 * Math.sin(t * 3.1);
+      const rot = 9 * Math.sin(t * 0.7) + 4 * Math.sin(t * 1.9), sx = 1 + 0.08 * Math.sin(t * 1.6), sy = 1 + 0.08 * Math.sin(t * 1.6 + 1.7);
+      wrap.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + rot.toFixed(1) + 'deg) scale(' + sx.toFixed(3) + ',' + sy.toFixed(3) + ')';
+    }
     requestAnimationFrame(loop);
   };
+  requestAnimationFrame(loop);
+}
+// before (20.11.26): the same orb, less blur, a gentle sway; the two sentences ran together
+function renderIntoxFactV2(w) {
+  if (!drunkGL || drunkGL === 'none') { renderIntoxFactV1(w); return; }
+  w.classList.add('fact');
+  const wrap = el('div', 'drunkorb'); wrap.setAttribute('aria-hidden', 'true'); wrap.appendChild(drunkGL.cv);
+  const p = el('p', 'main'); p.innerHTML = rich(COPY.intoxFact.replace('\n', ' ')); w.append(wrap, p);
+  const { cv, r } = drunkGL;
+  const loop = now => { if (!cv.isConnected) return; r.size(); const keep = [ORBLAB.blur, ORBLAB.grain]; ORBLAB.blur = DRUNK.blur; ORBLAB.grain = DRUNK.grain;
+    r.draw(now / 1000, cv.width / 2, cv.height / 2, cv.width * 0.33, 0); [ORBLAB.blur, ORBLAB.grain] = keep; requestAnimationFrame(loop); };
   requestAnimationFrame(loop);
 }
 // before (12.11.26): five soft CSS blobs blurred together
@@ -117,8 +180,7 @@ function renderIntoxFactV1(w) {
   w.classList.add('fact');
   const orb = el('div', 'fuzzorb'); orb.setAttribute('aria-hidden', 'true');
   ['fp', 'fy', 'fo', 'fm', 'fb'].forEach(c => orb.appendChild(el('i', c)));     // purple body, then yellow, orange, magenta, and the blue core on top
-  const p = el('p', 'main'); p.innerHTML = rich(COPY.intoxFact);
-  w.append(orb, p);
+  w.appendChild(orb); intoxLines(w, COPY.intoxFact);
 }
 
 /* ---------- reply to "Why are you here?" (design alternative): their answer, what Pheno does about it, what comes next ---------- */
@@ -165,6 +227,10 @@ function fallbackRecap() {
   (why.length ? why : ['You changed timezone in the last two weeks.']).forEach(t => d.appendChild(el('p', 'why', '[' + t + ']')));
   return d;
 }
+// before (21.11.26): "From your answers, we're leaning towards…"
+const LEAN_V1 = { late: 'From your answers, we’re leaning towards you being a night owl.', early: 'From your answers, we’re leaning towards you being [an early bird].',
+  middle: 'From your answers, we’re leaning towards you sitting somewhere in the middle, between a night owl and a morning person.',
+  gap: '[From your answers, there’s a gap between when you go to bed and when you’d choose to.]', fallback: 'We don’t have a first guess about you yet. Your nights will start to show us.' };
 function renderReveal(w) {
   const k = leanOf(); A.revealCase = k; logAnswers();
   w.classList.add('reveal', 'rv-' + k);
@@ -172,25 +238,26 @@ function renderReveal(w) {
   if (k === 'gap') { const m = myWindows(); const d = el('div', 'myans'); d.append(el('span', 'k', 'Your answers'), windowsVisual(m.s, m.i, ['Work sleep window', 'Ideal sleep window'], m.example)); w.appendChild(d); }
   else if (k === 'fallback') w.appendChild(fallbackRecap());
   else w.appendChild(chronoRecap());
-  w.appendChild(el('p', 'main', LEAN[k]));
+  const p = el('p', 'main'); p.innerHTML = rich(LEAN[k]); w.appendChild(p);
 }
 
 /* ---------- timeline: "Your journey" ruler, oldest milestone at the bottom; static, or drawn in from day 7 upwards (design alternative) ---------- */
 function renderTimeline(w) {
   w.classList.add('journey');
-  // a long ruler (about 34px a day) in its own scroll area, opened at the bottom on day 7; scroll up for what comes later
-  const TOP = 38, BOT = 2, H = (TOP - BOT) * 34, yOf = d => (TOP - d) / (TOP - BOT) * H;
+  // a long ruler (about 34px a day) in its own scroll area, opened at the bottom on the first milestone; scroll up for what comes later
+  const days = COPY.timeline.map(m => m[0]), TOP = Math.max(...days) + 5, BOT = Math.min(...days) - 5, H = (TOP - BOT) * 34, yOf = d => (TOP - d) / (TOP - BOT) * H;
   const sc = el('div', 'rscroll'), ruler = el('div', 'ruler'); ruler.style.height = H + 'px'; ruler.setAttribute('role', 'list'); ruler.setAttribute('aria-label', 'Your journey');
   const widths = [24, 40, 24, 64]; let k = 0;                                   // minor ticks between the milestones, short and long in turn
   for (let d = BOT + 0.5; d < TOP; d += 1) {
     if (COPY.timeline.some(([m]) => Math.abs(m - d) < 0.9)) continue;
     const t = el('i', 'tick'); t.style.top = yOf(d) + 'px'; t.style.width = widths[k++ % 4] + 'px'; t.style.setProperty('--d', (TOP - d) / (TOP - BOT)); ruler.appendChild(t);
   }
-  COPY.timeline.forEach(([day, label, strong]) => {
+  COPY.timeline.forEach(([day, label, strong, mark]) => {
     const r = el('div', 'ms' + (strong ? ' strong' : '')); r.setAttribute('role', 'listitem'); r.style.top = yOf(day) + 'px'; r.style.setProperty('--d', (TOP - day) / (TOP - BOT));
-    r.append(el('span', 'day', 'Day [' + day + ']'), el('i', 'line'), el('span', 'lab', label)); ruler.appendChild(r);
+    r.append(el('span', 'day', mark || 'Day [' + day + ']'), el('i', 'line'), el('span', 'lab', label)); ruler.appendChild(r);
   });
   sc.appendChild(ruler); w.append(el('p', 'jk', 'Your journey'), sc);
+  if (COPY.timelineNote) w.appendChild(el('p', 'jnote', COPY.timelineNote));
   requestAnimationFrame(() => { sc.scrollTop = sc.scrollHeight; });
   const mode = typeof ALT === 'object' ? ALT.journey : 'auto';
   if (mode === 'draw') { ruler.classList.add('anim'); requestAnimationFrame(() => requestAnimationFrame(() => ruler.classList.add('go'))); }
